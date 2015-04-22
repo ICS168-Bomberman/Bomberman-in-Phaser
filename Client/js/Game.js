@@ -18,7 +18,7 @@ var players = [];
 
 //player 1 default variables
 var player1 = new Player();
-player1.vel = 80;
+player1.vel = 200;
 player1.frameWidth = 16;
 player1.frameHeight = 22;
 players.push(player1);

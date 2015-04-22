@@ -2,7 +2,7 @@
 
 "Grass.png":
 {
-	"frame": {"x":378,"y":2,"w":20,"h":20},
+	"frame": {"x":195,"y":2,"w":20,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":20,"h":20},
@@ -10,7 +10,7 @@
 },
 "black_bomberman_down0.png":
 {
-	"frame": {"x":2,"y":2,"w":15,"h":22},
+	"frame": {"x":2,"y":30,"w":15,"h":22},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":15,"h":22},
@@ -18,7 +18,7 @@
 },
 "black_bomberman_down1.png":
 {
-	"frame": {"x":138,"y":2,"w":13,"h":21},
+	"frame": {"x":75,"y":2,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -26,7 +26,7 @@
 },
 "black_bomberman_down2.png":
 {
-	"frame": {"x":153,"y":2,"w":13,"h":21},
+	"frame": {"x":87,"y":25,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -34,7 +34,7 @@
 },
 "black_bomberman_left0.png":
 {
-	"frame": {"x":168,"y":2,"w":13,"h":21},
+	"frame": {"x":90,"y":2,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -42,7 +42,7 @@
 },
 "black_bomberman_left1.png":
 {
-	"frame": {"x":594,"y":2,"w":13,"h":20},
+	"frame": {"x":303,"y":2,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -50,7 +50,7 @@
 },
 "black_bomberman_left2.png":
 {
-	"frame": {"x":609,"y":2,"w":13,"h":20},
+	"frame": {"x":315,"y":24,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -58,7 +58,7 @@
 },
 "black_bomberman_right0.png":
 {
-	"frame": {"x":183,"y":2,"w":13,"h":21},
+	"frame": {"x":102,"y":25,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -66,7 +66,7 @@
 },
 "black_bomberman_right1.png":
 {
-	"frame": {"x":624,"y":2,"w":13,"h":20},
+	"frame": {"x":318,"y":2,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -74,7 +74,7 @@
 },
 "black_bomberman_right2.png":
 {
-	"frame": {"x":639,"y":2,"w":13,"h":20},
+	"frame": {"x":330,"y":24,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -82,7 +82,7 @@
 },
 "black_bomberman_up0.png":
 {
-	"frame": {"x":53,"y":2,"w":15,"h":21},
+	"frame": {"x":36,"y":26,"w":15,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":15,"h":21},
@@ -90,7 +90,7 @@
 },
 "black_bomberman_up1.png":
 {
-	"frame": {"x":466,"y":2,"w":14,"h":20},
+	"frame": {"x":239,"y":2,"w":14,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":14,"h":20},
@@ -98,7 +98,7 @@
 },
 "black_bomberman_up2.png":
 {
-	"frame": {"x":482,"y":2,"w":14,"h":20},
+	"frame": {"x":251,"y":24,"w":14,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":14,"h":20},
@@ -106,7 +106,7 @@
 },
 "blue_bomberman_down0.png":
 {
-	"frame": {"x":19,"y":2,"w":15,"h":22},
+	"frame": {"x":19,"y":30,"w":15,"h":22},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":15,"h":22},
@@ -114,7 +114,7 @@
 },
 "blue_bomberman_down1.png":
 {
-	"frame": {"x":198,"y":2,"w":13,"h":21},
+	"frame": {"x":105,"y":2,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -122,7 +122,7 @@
 },
 "blue_bomberman_down2.png":
 {
-	"frame": {"x":213,"y":2,"w":13,"h":21},
+	"frame": {"x":117,"y":25,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -130,7 +130,7 @@
 },
 "blue_bomberman_left0.png":
 {
-	"frame": {"x":228,"y":2,"w":13,"h":21},
+	"frame": {"x":120,"y":2,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -138,7 +138,7 @@
 },
 "blue_bomberman_left1.png":
 {
-	"frame": {"x":654,"y":2,"w":13,"h":20},
+	"frame": {"x":333,"y":2,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -146,7 +146,7 @@
 },
 "blue_bomberman_left2.png":
 {
-	"frame": {"x":669,"y":2,"w":13,"h":20},
+	"frame": {"x":345,"y":24,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -154,7 +154,7 @@
 },
 "blue_bomberman_right0.png":
 {
-	"frame": {"x":243,"y":2,"w":13,"h":21},
+	"frame": {"x":132,"y":25,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -162,7 +162,7 @@
 },
 "blue_bomberman_right1.png":
 {
-	"frame": {"x":684,"y":2,"w":13,"h":20},
+	"frame": {"x":348,"y":2,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -170,7 +170,7 @@
 },
 "blue_bomberman_right2.png":
 {
-	"frame": {"x":699,"y":2,"w":13,"h":20},
+	"frame": {"x":360,"y":24,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -178,7 +178,7 @@
 },
 "blue_bomberman_up0.png":
 {
-	"frame": {"x":70,"y":2,"w":15,"h":21},
+	"frame": {"x":41,"y":2,"w":15,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":15,"h":21},
@@ -186,7 +186,7 @@
 },
 "blue_bomberman_up1.png":
 {
-	"frame": {"x":498,"y":2,"w":14,"h":20},
+	"frame": {"x":255,"y":2,"w":14,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":14,"h":20},
@@ -194,7 +194,7 @@
 },
 "blue_bomberman_up2.png":
 {
-	"frame": {"x":514,"y":2,"w":14,"h":20},
+	"frame": {"x":267,"y":24,"w":14,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":14,"h":20},
@@ -202,7 +202,7 @@
 },
 "bomb0.png":
 {
-	"frame": {"x":834,"y":2,"w":18,"h":19},
+	"frame": {"x":435,"y":2,"w":18,"h":19},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":18,"h":19},
@@ -210,7 +210,7 @@
 },
 "bomb1.png":
 {
-	"frame": {"x":854,"y":2,"w":18,"h":19},
+	"frame": {"x":435,"y":23,"w":18,"h":19},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":18,"h":19},
@@ -218,7 +218,7 @@
 },
 "bomb2.png":
 {
-	"frame": {"x":400,"y":2,"w":20,"h":20},
+	"frame": {"x":207,"y":24,"w":20,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":20,"h":20},
@@ -226,15 +226,23 @@
 },
 "bomb3.png":
 {
-	"frame": {"x":422,"y":2,"w":20,"h":20},
+	"frame": {"x":217,"y":2,"w":20,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":20,"h":20},
 	"sourceSize": {"w":20,"h":20}
 },
+"enemy_ghost.png":
+{
+	"frame": {"x":2,"y":2,"w":20,"h":26},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":20,"h":26},
+	"sourceSize": {"w":20,"h":26}
+},
 "explosion_center.png":
 {
-	"frame": {"x":874,"y":2,"w":16,"h":16},
+	"frame": {"x":207,"y":46,"w":16,"h":16},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
@@ -242,7 +250,7 @@
 },
 "explosion_down1.png":
 {
-	"frame": {"x":892,"y":2,"w":12,"h":16},
+	"frame": {"x":405,"y":46,"w":12,"h":16},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":12,"h":16},
@@ -250,7 +258,7 @@
 },
 "explosion_down2.png":
 {
-	"frame": {"x":920,"y":2,"w":12,"h":14},
+	"frame": {"x":54,"y":48,"w":12,"h":14},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":12,"h":14},
@@ -258,7 +266,7 @@
 },
 "explosion_left1.png":
 {
-	"frame": {"x":948,"y":2,"w":16,"h":12},
+	"frame": {"x":36,"y":49,"w":16,"h":12},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":12},
@@ -266,7 +274,7 @@
 },
 "explosion_left2.png":
 {
-	"frame": {"x":984,"y":2,"w":14,"h":12},
+	"frame": {"x":100,"y":48,"w":14,"h":12},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":14,"h":12},
@@ -274,7 +282,7 @@
 },
 "explosion_right1.png":
 {
-	"frame": {"x":966,"y":2,"w":16,"h":12},
+	"frame": {"x":82,"y":48,"w":16,"h":12},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":12},
@@ -282,7 +290,7 @@
 },
 "explosion_right2.png":
 {
-	"frame": {"x":1000,"y":2,"w":14,"h":12},
+	"frame": {"x":116,"y":48,"w":14,"h":12},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":14,"h":12},
@@ -290,7 +298,7 @@
 },
 "explosion_up1.png":
 {
-	"frame": {"x":906,"y":2,"w":12,"h":16},
+	"frame": {"x":419,"y":46,"w":12,"h":16},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":12,"h":16},
@@ -298,15 +306,95 @@
 },
 "explosion_up2.png":
 {
-	"frame": {"x":934,"y":2,"w":12,"h":14},
+	"frame": {"x":68,"y":48,"w":12,"h":14},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":12,"h":14},
 	"sourceSize": {"w":12,"h":14}
 },
+"powerup_decrease_speed.png":
+{
+	"frame": {"x":225,"y":46,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
+"powerup_increase_bomb_drops.png":
+{
+	"frame": {"x":243,"y":46,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
+"powerup_increase_bomb_range.png":
+{
+	"frame": {"x":261,"y":46,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
+"powerup_increase_speed.png":
+{
+	"frame": {"x":279,"y":46,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
+"powerup_kick_bomb.png":
+{
+	"frame": {"x":297,"y":46,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
+"powerup_lift_bombs.png":
+{
+	"frame": {"x":315,"y":46,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
+"powerup_line_bombs.png":
+{
+	"frame": {"x":333,"y":46,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
+"powerup_punch_bombs.png":
+{
+	"frame": {"x":351,"y":46,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
+"powerup_skull.png":
+{
+	"frame": {"x":369,"y":46,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
+"powerup_vest.png":
+{
+	"frame": {"x":387,"y":46,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
 "red_bomberman_down0.png":
 {
-	"frame": {"x":87,"y":2,"w":15,"h":21},
+	"frame": {"x":53,"y":25,"w":15,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":15,"h":21},
@@ -314,7 +402,7 @@
 },
 "red_bomberman_down1.png":
 {
-	"frame": {"x":258,"y":2,"w":13,"h":21},
+	"frame": {"x":135,"y":2,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -322,7 +410,7 @@
 },
 "red_bomberman_down2.png":
 {
-	"frame": {"x":273,"y":2,"w":13,"h":21},
+	"frame": {"x":147,"y":25,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -330,7 +418,7 @@
 },
 "red_bomberman_left0.png":
 {
-	"frame": {"x":288,"y":2,"w":13,"h":21},
+	"frame": {"x":150,"y":2,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -338,7 +426,7 @@
 },
 "red_bomberman_left1.png":
 {
-	"frame": {"x":714,"y":2,"w":13,"h":20},
+	"frame": {"x":363,"y":2,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -346,7 +434,7 @@
 },
 "red_bomberman_left2.png":
 {
-	"frame": {"x":729,"y":2,"w":13,"h":20},
+	"frame": {"x":375,"y":24,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -354,7 +442,7 @@
 },
 "red_bomberman_right0.png":
 {
-	"frame": {"x":303,"y":2,"w":13,"h":21},
+	"frame": {"x":162,"y":25,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -362,7 +450,7 @@
 },
 "red_bomberman_right1.png":
 {
-	"frame": {"x":744,"y":2,"w":13,"h":20},
+	"frame": {"x":378,"y":2,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -370,7 +458,7 @@
 },
 "red_bomberman_right2.png":
 {
-	"frame": {"x":759,"y":2,"w":13,"h":20},
+	"frame": {"x":390,"y":24,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -378,7 +466,7 @@
 },
 "red_bomberman_up0.png":
 {
-	"frame": {"x":104,"y":2,"w":15,"h":21},
+	"frame": {"x":58,"y":2,"w":15,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":15,"h":21},
@@ -386,7 +474,7 @@
 },
 "red_bomberman_up1.png":
 {
-	"frame": {"x":530,"y":2,"w":14,"h":20},
+	"frame": {"x":271,"y":2,"w":14,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":14,"h":20},
@@ -394,7 +482,7 @@
 },
 "red_bomberman_up2.png":
 {
-	"frame": {"x":546,"y":2,"w":14,"h":20},
+	"frame": {"x":283,"y":24,"w":14,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":14,"h":20},
@@ -402,7 +490,7 @@
 },
 "rock.png":
 {
-	"frame": {"x":444,"y":2,"w":20,"h":20},
+	"frame": {"x":229,"y":24,"w":20,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":20,"h":20},
@@ -410,7 +498,7 @@
 },
 "white_bomberman_down0.png":
 {
-	"frame": {"x":36,"y":2,"w":15,"h":22},
+	"frame": {"x":24,"y":2,"w":15,"h":22},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":15,"h":22},
@@ -418,7 +506,7 @@
 },
 "white_bomberman_down1.png":
 {
-	"frame": {"x":318,"y":2,"w":13,"h":21},
+	"frame": {"x":165,"y":2,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -426,7 +514,7 @@
 },
 "white_bomberman_down2.png":
 {
-	"frame": {"x":333,"y":2,"w":13,"h":21},
+	"frame": {"x":177,"y":25,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -434,7 +522,7 @@
 },
 "white_bomberman_left0.png":
 {
-	"frame": {"x":348,"y":2,"w":13,"h":21},
+	"frame": {"x":180,"y":2,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -442,7 +530,7 @@
 },
 "white_bomberman_left1.png":
 {
-	"frame": {"x":774,"y":2,"w":13,"h":20},
+	"frame": {"x":393,"y":2,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -450,7 +538,7 @@
 },
 "white_bomberman_left2.png":
 {
-	"frame": {"x":789,"y":2,"w":13,"h":20},
+	"frame": {"x":405,"y":24,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -458,7 +546,7 @@
 },
 "white_bomberman_right0.png":
 {
-	"frame": {"x":363,"y":2,"w":13,"h":21},
+	"frame": {"x":192,"y":25,"w":13,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":21},
@@ -466,7 +554,7 @@
 },
 "white_bomberman_right1.png":
 {
-	"frame": {"x":804,"y":2,"w":13,"h":20},
+	"frame": {"x":408,"y":2,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -474,7 +562,7 @@
 },
 "white_bomberman_right2.png":
 {
-	"frame": {"x":819,"y":2,"w":13,"h":20},
+	"frame": {"x":420,"y":24,"w":13,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":13,"h":20},
@@ -482,7 +570,7 @@
 },
 "white_bomberman_up0.png":
 {
-	"frame": {"x":121,"y":2,"w":15,"h":21},
+	"frame": {"x":70,"y":25,"w":15,"h":21},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":15,"h":21},
@@ -490,7 +578,7 @@
 },
 "white_bomberman_up1.png":
 {
-	"frame": {"x":562,"y":2,"w":14,"h":20},
+	"frame": {"x":287,"y":2,"w":14,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":14,"h":20},
@@ -498,7 +586,7 @@
 },
 "white_bomberman_up2.png":
 {
-	"frame": {"x":578,"y":2,"w":14,"h":20},
+	"frame": {"x":299,"y":24,"w":14,"h":20},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":14,"h":20},
@@ -509,8 +597,8 @@
 	"version": "1.0",
 	"image": "global_spritesheet.png",
 	"format": "RGBA8888",
-	"size": {"w":1016,"h":26},
+	"size": {"w":455,"h":64},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:2bb1a688575b39c259eb9343aa10c391:24bc8493621c0e673f6260da46500a16:453b497766772d7ac9062a0fa2541dc0$"
+	"smartupdate": "$TexturePacker:SmartUpdate:c50a11e5e2351d846231d2e0fdad9e12:cb09f50e63cd00283813f91432dac8ce:453b497766772d7ac9062a0fa2541dc0$"
 }
 }
