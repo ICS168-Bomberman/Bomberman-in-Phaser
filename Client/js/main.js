@@ -1,5 +1,8 @@
 var Bomberman = Bomberman || {};
 
+var audio = new Audio('Client/assets/music/Bomberman Theme.mp3');
+audio.play();
+
 Bomberman.game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO,'');
 
 Bomberman.game.state.add('Boot', Bomberman.Boot);

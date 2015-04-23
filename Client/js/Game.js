@@ -18,7 +18,7 @@ var players = [];
 
 //player 1 default variables
 var player1 = new Player();
-player1.vel = 150;
+player1.vel = 120;
 player1.frameWidth = 16;
 player1.frameHeight = 22;
 players.push(player1);
@@ -28,9 +28,10 @@ player1.alive = true;
 var map = {};
 map.initialBombRange = 1;
 map.initialNumberOfBombs = 1;
+map.bombCounter = 0;
 
 //powerups
-var powerups = ["powerup_increase_bomb_drops.png", "powerup_increase_bomb_range.png"];
+var powerups = ["powerup_increase_bomb_drops.png", "powerup_increase_bomb_range.png", "powerup_increase_speed.png"];
 
 Bomberman.Game.prototype = {
 
@@ -275,6 +276,9 @@ Bomberman.Game.prototype = {
 				case "powerup_increase_bomb_range.png":
 					map.initialBombRange++;
 					break;
+				case "powerup_increase_speed.png":
+					player1.vel += 20;
+					break;
 			}
 			powerup.destroy();
 			map.board[bx][by].hasPowerUp = false;
@@ -305,59 +309,62 @@ Bomberman.Game.prototype = {
 		var wcoords = Utils.blockCoords2WorldCoords(bx,by);
 
 		//check that block doesn't have a bomb already
-		//if(map.board[bx][by].hasBomb) 
-		//	return;
+		if(map.board[bx][by].hasBomb) 
+			return;
 
-		for (var i = 0; i < map.width; i++){
-			for (var j = 0; j < map.height; j++){
-				if (map.board[i][j].hasBomb)
-					return;
-			}
-		}
+		//for (var i = 0; i < map.width; i++){
+		//	for (var j = 0; j < map.height; j++){
+		//		if (map.board[i][j].hasBomb)
+		//			return;
+		//	}
+		//}
 
 		//////////////////////////
 		//// DROPPING A BOMB /////
 		//////////////////////////
+		if (map.bombCounter != map.initialNumberOfBombs)
+		{
+			map.board[bx][by].hasBomb = true;
+			var bomb = new Bomb();
 
-		map.board[bx][by].hasBomb = true;
-		var bomb = new Bomb();
+			bomb.explosionFragments = [];
+			bomb.bx = bx;
+			bomb.by = by;
+			bomb.wx = wcoords.x;
+			bomb.wy = wcoords.y;
 
-		bomb.explosionFragments = [];
-		bomb.bx = bx;
-		bomb.by = by;
-		bomb.wx = wcoords.x;
-		bomb.wy = wcoords.y;
+			//bomb sprite
+			bomb.sprite = map.bombs.create(wcoords.x, wcoords.y,'global_spritesheet');
+			bomb.sprite.frameName = 'bomb0.png';
 
-		//bomb sprite
-		bomb.sprite = map.bombs.create(wcoords.x, wcoords.y,'global_spritesheet');
-		bomb.sprite.frameName = 'bomb0.png';
+			//scaling bomb sprite to fin in a cell of the board
+			Utils.updateFrameDimensions(bomb,this.game.cache);
+			bomb.sprite.anchor.x = 0.5;
+			bomb.sprite.anchor.y = 0.5;
+			bomb.sprite.scale.set(map.terrainBlockSize / bomb.frameWidth,
+										 map.terrainBlockSize / bomb.frameHeight);
 
-		//scaling bomb sprite to fin in a cell of the board
-		Utils.updateFrameDimensions(bomb,this.game.cache);
-		bomb.sprite.anchor.x = 0.5;
-		bomb.sprite.anchor.y = 0.5;
-		bomb.sprite.scale.set(map.terrainBlockSize / bomb.frameWidth,
-									 map.terrainBlockSize / bomb.frameHeight);
+			//bomb animation (no explosion yet)
+			bomb.sprite.animations.add('bomb',[
+				'bomb0.png',
+				'bomb1.png',
+				'bomb2.png',
+				'bomb3.png'
+				],2,false);
+			bomb.sprite.animations.play('bomb');
 
-		//bomb animation (no explosion yet)
-		bomb.sprite.animations.add('bomb',[
-			'bomb0.png',
-			'bomb1.png',
-			'bomb2.png',
-			'bomb3.png'
-			],2,false);
-		bomb.sprite.animations.play('bomb');
+			//enabling physics
+			this.game.physics.arcade.enable(bomb.sprite);
+			bomb.sprite.body.immovable = true;
 
-		//enabling physics
-		this.game.physics.arcade.enable(bomb.sprite);
-		bomb.sprite.body.immovable = true;
+			//storing in map.board
+			map.board[bx][by].bomb = bomb;
 
-		//storing in map.board
-		map.board[bx][by].bomb = bomb;
+			//launching time event that will perform the explosion animation
+			this.game.time.events.add(2000,this.explodeBomb,this,bomb);
 
-		//launching time event that will perform the explosion animation
-		this.game.time.events.add(2000,this.explodeBomb,this,bomb);
-
+			map.bombCounter++;
+		}
 	},
 
 	//callback function called to simulate the actual explosion of the bomb
@@ -420,7 +427,7 @@ Bomberman.Game.prototype = {
 		//remove bomb from the place
 		bomb.sprite.destroy();
 		map.board[bomb.bx][bomb.by].hasBomb = false;
-
+		map.bombCounter--;
 	},
 
 	//check if the explosion collisions with a destructible block
@@ -449,27 +456,28 @@ Bomberman.Game.prototype = {
 				var wcoords = Utils.blockCoords2WorldCoords(bx, by);
 				var powerup = map.powerups.create(wcoords.x, wcoords.y, "global_spritesheet");
 				map.board[bx][by].hasPowerUp = true;
-				powerup.frameName = "powerup_increase_bomb_drops.png";
+				var randomPowerUp = powerups[Math.floor(Math.random() * powerups.length)];
+				powerup.frameName = randomPowerUp;
 				powerup.anchor.x = 0.5;
 				powerup.anchor.y = 0.5;
-				var dim = Utils.getFrameDimensions("powerup_increase_bomb_drops.png", this.game.cache);
+				var dim = Utils.getFrameDimensions(randomPowerUp, this.game.cache);
 				var scaleX = map.terrainBlockSize / dim.width;
 				var scaleY = map.terrainBlockSize / dim.height;
 				powerup.scale.set(scaleX,scaleY);	
 			}
-			else if (randomValue == 1)
-			{
-				var wcoords = Utils.blockCoords2WorldCoords(bx, by);
-				var powerup = map.powerups.create(wcoords.x, wcoords.y, "global_spritesheet");
-				map.board[bx][by].hasPowerUp = true;
-				powerup.frameName = "powerup_increase_bomb_range.png";
-				powerup.anchor.x = 0.5;
-				powerup.anchor.y = 0.5;
-				var dim = Utils.getFrameDimensions("powerup_increase_bomb_range.png", this.game.cache);
-				var scaleX = map.terrainBlockSize / dim.width;
-				var scaleY = map.terrainBlockSize / dim.height;
-				powerup.scale.set(scaleX,scaleY);	
-			}
+			//else if (randomValue == 1)
+			//{
+			//	var wcoords = Utils.blockCoords2WorldCoords(bx, by);
+			//	var powerup = map.powerups.create(wcoords.x, wcoords.y, "global_spritesheet");
+			//	map.board[bx][by].hasPowerUp = true;
+			//	powerup.frameName = "powerup_increase_bomb_range.png";
+			//	powerup.anchor.x = 0.5;
+			//	powerup.anchor.y = 0.5;
+			//	var dim = Utils.getFrameDimensions("powerup_increase_bomb_range.png", this.game.cache);
+			//	var scaleX = map.terrainBlockSize / dim.width;
+			//	var scaleY = map.terrainBlockSize / dim.height;
+			//	powerup.scale.set(scaleX,scaleY);	
+			//}
 
 			output = false;
 
