@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+    <title>Node Authentication</title>
+
+    <script type="text/javascript" src="Client/js/libraries/phaser.js"></script>
+	<script type="text/javascript" src="Client/js/Utils.js"></script>
+	<script type="text/javascript" src="Client/js/Player.js"></script>
+	<script type="text/javascript" src="Client/js/Bomb.js"></script>
+	<script type="text/javascript" src="Client/js/Explosion.js"></script>
+	<script type="text/javascript" src="Client/js/Boot.js"></script>
+	<script type="text/javascript" src="Client/js/Preload.js"></script>
+	<script type="text/javascript" src="Client/js/Game.js"></script>
+
+
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+    <style>
+        body         { padding-top:80px; word-wrap:break-word; }
+    </style>
+
+</head>
+<body>
+<div>
+
+    <div class="page-header text-center">
+        <h1><span class="fa fa-anchor"></span> Profile Page</h1>
+        <a href="/logout" class="btn btn-default btn-sm">Logout</a>
+    </div>
+    <div class="row">
+        <!-- LOCAL INFORMATION -->
+        <div class="col-sm-6">
+            <div class="well">
+                <h3><span class="fa fa-user"></span> Local</h3>
+
+                <% if (user.username) { %>
+                    <p>
+                        <strong>id</strong>: <%= user._id %><br>
+                        <strong>username</strong>: <%= user.username %><br>
+                        <strong>password</strong>: <%= user.password %>
+                    </p>
+                <% } else { %>
+                    USERNAME NOT FOUND, THIS SHOULD NOT BE HAPPENINGs
+                <% } %>
+
+            </div>
+        </div>
+	</div>
+    <div id="game_div"></div>
+    <script src="Client/js/main.js"></script>
+
+</div>
+</body>
+</html>

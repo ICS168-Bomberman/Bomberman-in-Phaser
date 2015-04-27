@@ -188,7 +188,7 @@ Bomberman.Game.prototype = {
 				players[i].alive = false;
 				players[i].sprite.destroy();
 				Utils.removeElementFromArray(players[i], players);
-				--i;
+				--i; 
 
 			} else {
 
@@ -330,6 +330,7 @@ Bomberman.Game.prototype = {
 		var bx, by, next_bx, next_by;		
 		var frnameMiddle;
 		var frnameEnd;
+		var maxRangeReached;
 
 		//upwards
 		bx = bomb.bx;
@@ -339,7 +340,8 @@ Bomberman.Game.prototype = {
 		for(var i = 1; i <= map.initialBombRange; ++i) {
 			by = bomb.by - i;
 			next_by = by - 1;
-			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by))
+			maxRangeReached = (i == map.initialBombRange);
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by,maxRangeReached))
 				break;	
 		}
 		//downwards
@@ -350,7 +352,8 @@ Bomberman.Game.prototype = {
 		for(var i = 1; i <= map.initialBombRange; ++i) {
 			by = bomb.by + i;
 			next_by = by + 1;
-			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by))
+			maxRangeReached = (i == map.initialBombRange);
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by,maxRangeReached))
 				break;	
 		}
 		//rightwards
@@ -361,7 +364,8 @@ Bomberman.Game.prototype = {
 		for(var i = 1; i <= map.initialBombRange; ++i) {
 			bx = bomb.bx + i;
 			next_bx = bx + 1;
-			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by))
+			maxRangeReached = (i == map.initialBombRange);
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by,maxRangeReached))
 				break;	
 		}
 		//leftwards
@@ -372,7 +376,8 @@ Bomberman.Game.prototype = {
 		for(var i = 1; i <= map.initialBombRange; ++i) {
 			bx = bomb.bx - i;
 			next_bx = bx - 1;
-			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by))
+			maxRangeReached = (i == map.initialBombRange);
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by,maxRangeReached))
 				break;	
 		}
 
@@ -388,7 +393,7 @@ Bomberman.Game.prototype = {
 	//at this position in the board, destroy it
 	//and report this back to the caller by returning false,
 	//otherwise return true
-	handleExplosionEffectOnBlock: function(frnameMiddle, frnameEnd, bomb, bx, by, next_bx, next_by) {
+	handleExplosionEffectOnBlock: function(frnameMiddle, frnameEnd, bomb, bx, by, next_bx, next_by, maxRangeReached) {
 
 		//check that we are not beyond the allowed dimensions
 		if(Utils.outsideBoard(bx,by))
@@ -417,10 +422,10 @@ Bomberman.Game.prototype = {
 			//first, check the lookahead coords to know whether
 			//we have to use the middle sprite or the end sprite
 			var frameName;
-			if( Utils.outsideBoard(next_bx,next_by))
+			if( Utils.outsideBoard(next_bx,next_by) || maxRangeReached)
 				frameName = frnameEnd;
 			else {
-				var nextTerrain = map.board[next_bx][next_by];
+				var nextTerrain = map.board[next_bx][next_by].terrain;
 				if(nextTerrain == TerrainType.EMPTY || nextTerrain == TerrainType.GRASS)
 					frameName = frnameMiddle;
 				else 

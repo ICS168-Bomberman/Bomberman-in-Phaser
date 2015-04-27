@@ -1,6 +1,6 @@
 var Bomberman = Bomberman || {};
 
-Bomberman.game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO,'');
+Bomberman.game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO,'game_div');
 
 Bomberman.game.state.add('Boot', Bomberman.Boot);
 Bomberman.game.state.add('Preload', Bomberman.Preload);
