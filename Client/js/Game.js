@@ -16,6 +16,12 @@ var keyboard = {};
 //players
 var players = [];
 
+//enemies
+var Enemy = function() {};
+var enemies = [];
+var enemyWalkCounter = 1000;
+var direction;
+
 //player 1 default variables
 var player1 = new Player();
 player1.vel = 120;
@@ -24,6 +30,14 @@ player1.frameHeight = 22;
 players.push(player1);
 player1.alive = true;
 
+//enemy default variables
+var enemy = new Enemy();
+enemy.vel = 120;
+enemy.frameWidth = 16;
+enemy.frameHeight = 22;
+enemies.push(enemy);
+enemy.alive = true;
+
 //map
 var map = {};
 map.initialBombRange = 1;
@@ -31,7 +45,7 @@ map.initialNumberOfBombs = 1;
 map.bombCounter = 0;
 
 //powerups
-var powerups = ["powerup_increase_bomb_drops.png", "powerup_increase_bomb_range.png", "powerup_increase_speed.png"];
+var powerups = ["powerup_increase_bomb_drops.png", "powerup_increase_bomb_range.png", "powerup_increase_speed.png", "powerup_decrease_speed.png"];
 
 Bomberman.Game.prototype = {
 
@@ -50,9 +64,9 @@ Bomberman.Game.prototype = {
 		//create map as a bidimensional array
 
 		//map.width = 23; //3 + 2*n
-		map.width = this.game.rnd.integerInRange(2, 10) * 2  + 3;
+		map.width = this.game.rnd.integerInRange(2, 4) * 2  + 3;
 		//map.height = 19;
-		map.height = this.game.rnd.integerInRange(2, 10) * 2  + 3;
+		map.height = this.game.rnd.integerInRange(2, 4) * 2  + 3;
 		map.offsetX = 100;
 		map.offsetY = 50;
 		map.terrainBlockSize = 35;
@@ -137,6 +151,11 @@ Bomberman.Game.prototype = {
 		map.explosions.enableBody = true;
 		map.explosions.physicsBodyType = Phaser.Physics.ARCADE;
 
+		//define enemies group
+		map.enemies = this.game.add.group();
+		map.enemies.enableBody = true;
+		map.enemies.physicsBodyType = Phaser.Physics.ARCADE;
+
 		//place the rocks and the grass on the map
 		var rockBlock;
 		var grassBlock;
@@ -168,7 +187,10 @@ Bomberman.Game.prototype = {
 					rockBlock.body.immovable = true;
 					map.board[i][j].terrain = TerrainType.ROCK;
 
-				} else if(!Utils.isInRangeOfSomePlayer(x,y,map.initialBombRange)) {
+				} else if(!Utils.isInRangeOfSomePlayer(x,y,map.initialBombRange) &&
+					(i != map.width-2 || j != map.height-2) &&
+					(i != map.width-3 || j != map.height-2) &&
+					(i != map.width-2 || j != map.height-3)) {
 						
 					grassBlock = map.grassBlocks.create(x,y,'global_spritesheet');
 					grassBlock.frameName = 'Grass.png';
@@ -184,11 +206,69 @@ Bomberman.Game.prototype = {
 				}
 			}
 		}
+		/////////////////////////////
+		/////  CREATING PLAYER 2 ////
+		/////////////////////////////
+
+		//computing initial coordinates
+		enemy.x = -map.offsetX-5 + (map.width + 4)*map.terrainBlockSize;
+		enemy.y = -map.offsetY-5 + (map.height + 1)*map.terrainBlockSize;	
+
+		//creating the sprite
+		enemy.sprite = this.game.add.sprite(enemy.x,enemy.y, 'Pass_Bear_spritesheet');	
+
+		//movement animations
+		enemy.sprite.animations.add('down',[
+			'pass_bear_right1.png',
+			'pass_bear_right2.png',
+			'pass_bear_right3.png',
+			'pass_bear_right4.png',
+			],8,true);
+		enemy.sprite.animations.add('up',[
+			'pass_bear_left1.png',
+			'pass_bear_left2.png',
+			'pass_bear_left3.png',
+			'pass_bear_left4.png',
+			],8,true);
+		enemy.sprite.animations.add('right',[
+			'pass_bear_right1.png',
+			'pass_bear_right2.png',
+			'pass_bear_right3.png',
+			'pass_bear_right4.png',
+			],8,true);
+		enemy.sprite.animations.add('left',[
+			'pass_bear_left1.png',
+			'pass_bear_left2.png',
+			'pass_bear_left3.png',
+			'pass_bear_left4.png',
+			],8,true);
+
+		//storing the default standing position frame 
+		enemy.standingFrame = 'pass_bear_right1.png';
+
+		enemy.standingLeft = 'pass_bear_left1.png';
+		enemy.standingRight = 'pass_bear_right1.png';
+		enemy.standingUp = 'pass_bear_left1.png';
+		enemy.standingDown = 'pass_bear_right1.png';
+
+		enemy.sprite.frameName = enemy.standingFrame;
+
+		var frame = this.game.cache.getFrameData("Pass_Bear_spritesheet").getFrameByName(enemy.sprite.frameName);
+
+		enemy.frameWidth = frame.width;
+		enemy.frameHeight = frame.height;
+
+		enemy.sprite.anchor.x = 0.5;
+		enemy.sprite.anchor.y = 0.5;
+		enemy.sprite.scale.set( (map.playerBlockSize / enemy.frameWidth)*1.5,
+										  (map.playerBlockSize / enemy.frameHeight)*1.5);
+		//enabling physics		
+		this.game.physics.arcade.enable(enemy.sprite);
 	},
 
 	update: function() {
 
-		//check collisions
+		//check player collisions
 		for(var i = 0; i < players.length; ++i) {
 
 			if(players[i].destroyMe) {
@@ -197,17 +277,34 @@ Bomberman.Game.prototype = {
 				players[i].sprite.destroy();
 				Utils.removeElementFromArray(players[i], players);
 				--i;
-
+				var audio = new Audio('Client/assets/music/PLAYER_OUT.wav');
+				audio.play();
 			} else {
 
 				this.game.physics.arcade.collide(players[i].sprite, map.rockBlocks);
 				this.game.physics.arcade.collide(players[i].sprite, map.grassBlocks);
 				this.game.physics.arcade.collide(players[i].sprite, map.bombs);		
 				this.game.physics.arcade.overlap(players[i].sprite, map.powerups, this.handlePowerUps, null, players[i]);
-				this.game.physics.arcade.overlap(players[i].sprite, map.explosions, this.destroyPlayer, null, players[i]);	
-
+				this.game.physics.arcade.overlap(players[i].sprite, map.explosions, this.destroyPlayer, null, players[i]);
+				this.game.physics.arcade.overlap(players[i].sprite, map.enemies, this.destroyPlayer, null, players[i]);	
 			}
+		}
+		for(var i = 0; i < enemies.length; ++i) {
+			if(enemies[i].destroyMe) {
 
+				enemies[i].alive = false;
+				enemies[i].sprite.destroy();
+				Utils.removeElementFromArray(enemies[i], enemies);
+				var audio = new Audio('Client/assets/music/PAUSE.wav');
+				audio.play();
+
+			} else {
+				this.game.physics.arcade.collide(enemies[i].sprite, map.rockBlocks);
+				//this.game.physics.arcade.collide(enemies[i].sprite, map.grassBlocks);
+				this.game.physics.arcade.collide(enemies[i].sprite, map.bombs);		
+				this.game.physics.arcade.overlap(enemies[i].sprite, map.powerups, this.handlePowerUps, null, enemies[i]);
+				this.game.physics.arcade.overlap(enemies[i].sprite, map.explosions, this.destroyPlayer, null, enemies[i]);	
+			}
 		}
 
 		//which block is player1 standing in right now?
@@ -218,36 +315,30 @@ Bomberman.Game.prototype = {
 
 		//handle player movement and related animations
 		if(player1.alive) {
-
 			player1.sprite.body.velocity.x = 0;
 			player1.sprite.body.velocity.y = 0;
 
 			if(keyboard.cursors.left.isDown) {
-
 				player1.sprite.body.velocity.x = -player1.vel;
 				player1.standingFrame = player1.standingLeft ;
 				player1.sprite.animations.play('left');
 
 			} else if(keyboard.cursors.right.isDown) {
-
 				player1.sprite.body.velocity.x = player1.vel;
 				player1.standingFrame = player1.standingRight;
 				player1.sprite.animations.play('right');
 
 			} else if(keyboard.cursors.up.isDown) {
-
 				player1.sprite.body.velocity.y = -player1.vel;
 				player1.standingFrame = player1.standingUp;
 				player1.sprite.animations.play('up');
 
 			} else if(keyboard.cursors.down.isDown) {
-
 				player1.sprite.body.velocity.y = player1.vel;
 				player1.standingFrame = player1.standingDown;
 				player1.sprite.animations.play('down');
 
 			} else {
-
 				player1.sprite.animations.stop();
 				player1.sprite.frameName = player1.standingFrame;
 
@@ -259,6 +350,77 @@ Bomberman.Game.prototype = {
 			} 
 		}
 
+		if(enemy.alive && enemies.length != 0)
+		{
+			enemy.sprite.body.velocity.x = 0;
+			enemy.sprite.body.velocity.y = 0;
+
+			var moveChooser = Math.floor((Math.random() * 4) + 1);
+
+			if (moveChooser == 1)
+			{
+				setTimeout(function(){
+					enemy.sprite.body.velocity.x = -enemy.vel;
+					enemy.standingFrame = enemy.standingLeft ;
+					enemy.sprite.animations.play('left');
+					direction = 1;
+				}, enemyWalkCounter)
+			}
+			else if (moveChooser == 2)
+			{
+				setTimeout(function(){
+					enemy.sprite.body.velocity.x = enemy.vel;
+					enemy.standingFrame =enemy.standingRight;
+					enemy.sprite.animations.play('right');
+					direction = 2;
+				}, enemyWalkCounter)
+			}
+			else if (moveChooser == 3)
+			{
+				setTimeout(function(){
+					enemy.sprite.body.velocity.y = -enemy.vel;
+					enemy.standingFrame = enemy.standingUp;
+					enemy.sprite.animations.play('up');	
+					direction = 3;
+				}, enemyWalkCounter)
+			}
+			else if (moveChooser == 4)
+			{
+				setTimeout(function(){
+					enemy.sprite.body.velocity.y = enemy.vel;
+					enemy.standingFrame = enemy.standingDown;
+					enemy.sprite.animations.play('down');
+					direction = 4;
+				}, enemyWalkCounter)
+			}
+
+			enemyWalkCounter += 560;
+
+			if (direction == 1)
+			{
+					enemy.sprite.body.velocity.x = -enemy.vel;
+					enemy.standingFrame = enemy.standingLeft ;
+					enemy.sprite.animations.play('left');
+			}
+			else if (direction == 2)
+			{
+					enemy.sprite.body.velocity.x = enemy.vel;
+					enemy.standingFrame =enemy.standingRight;
+					enemy.sprite.animations.play('right');
+			}
+			else if (direction == 3)
+			{
+					enemy.sprite.body.velocity.y = -enemy.vel;
+					enemy.standingFrame = enemy.standingUp;
+					enemy.sprite.animations.play('up');	
+			}
+			else if (direction == 4)
+			{
+					enemy.sprite.body.velocity.y = enemy.vel;
+					enemy.standingFrame = enemy.standingDown;
+					enemy.sprite.animations.play('down');
+			}		
+		}
 	},
 
 	handlePowerUps: function(player, powerup)
@@ -268,6 +430,8 @@ Bomberman.Game.prototype = {
 
 		if (map.board[bx][by].hasPowerUp)
 		{
+			var audio = new Audio('Client/assets/music/ITEM_GET.wav');
+			audio.play();
 			switch(powerup.frameName)
 			{
 				case "powerup_increase_bomb_drops.png":
@@ -279,11 +443,18 @@ Bomberman.Game.prototype = {
 				case "powerup_increase_speed.png":
 					player1.vel += 20;
 					break;
+				case "powerup_decrease_speed.png":
+					if (player1.vel > 60)
+					{
+						player1.vel -= 20;
+					}
+					break;
 			}
 			powerup.destroy();
 			map.board[bx][by].hasPowerUp = false;
 		}
 	},
+
 	tryDropBomb: function(player) {
 
 		/*
@@ -312,18 +483,13 @@ Bomberman.Game.prototype = {
 		if(map.board[bx][by].hasBomb) 
 			return;
 
-		//for (var i = 0; i < map.width; i++){
-		//	for (var j = 0; j < map.height; j++){
-		//		if (map.board[i][j].hasBomb)
-		//			return;
-		//	}
-		//}
-
 		//////////////////////////
 		//// DROPPING A BOMB /////
 		//////////////////////////
 		if (map.bombCounter != map.initialNumberOfBombs)
 		{
+			var audio = new Audio('Client/assets/music/BOM_SET.wav');
+			audio.play();
 			map.board[bx][by].hasBomb = true;
 			var bomb = new Bomb();
 
@@ -376,6 +542,7 @@ Bomberman.Game.prototype = {
 		var bx, by, next_bx, next_by;		
 		var frnameMiddle;
 		var frnameEnd;
+		var maxRangeReached;
 
 		//upwards
 		bx = bomb.bx;
@@ -385,7 +552,8 @@ Bomberman.Game.prototype = {
 		for(var i = 1; i <= map.initialBombRange; ++i) {
 			by = bomb.by - i;
 			next_by = by - 1;
-			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by))
+			maxRangeReached = (i == map.initialBombRange);
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached))
 				break;	
 		}
 		//downwards
@@ -396,7 +564,8 @@ Bomberman.Game.prototype = {
 		for(var i = 1; i <= map.initialBombRange; ++i) {
 			by = bomb.by + i;
 			next_by = by + 1;
-			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by))
+			maxRangeReached = (i == map.initialBombRange);
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached))
 				break;	
 		}
 		//rightwards
@@ -407,7 +576,8 @@ Bomberman.Game.prototype = {
 		for(var i = 1; i <= map.initialBombRange; ++i) {
 			bx = bomb.bx + i;
 			next_bx = bx + 1;
-			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by))
+			maxRangeReached = (i == map.initialBombRange);
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached))
 				break;	
 		}
 		//leftwards
@@ -418,7 +588,8 @@ Bomberman.Game.prototype = {
 		for(var i = 1; i <= map.initialBombRange; ++i) {
 			bx = bomb.bx - i;
 			next_bx = bx - 1;
-			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by))
+			maxRangeReached = (i == map.initialBombRange);
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached))
 				break;	
 		}
 
@@ -427,6 +598,8 @@ Bomberman.Game.prototype = {
 		//remove bomb from the place
 		bomb.sprite.destroy();
 		map.board[bomb.bx][bomb.by].hasBomb = false;
+		var audio = new Audio('Client/assets/music/BOM_11_S.wav');
+		audio.play();
 		map.bombCounter--;
 	},
 
@@ -434,7 +607,7 @@ Bomberman.Game.prototype = {
 	//at this position in the board, destroy it
 	//and report this back to the caller by returning false,
 	//otherwise return true
-	handleExplosionEffectOnBlock: function(frnameMiddle, frnameEnd, bomb, bx, by, next_bx, next_by) {
+	handleExplosionEffectOnBlock: function(frnameMiddle, frnameEnd, bomb, bx, by, next_bx, next_by, maxRangeReached) {
 
 		//check that we are not beyond the allowed dimensions
 		if(Utils.outsideBoard(bx,by))
@@ -450,12 +623,13 @@ Bomberman.Game.prototype = {
 			cell.grassBlock.destroy();
 			cell.terrain = TerrainType.EMPTY;
 
-			var randomValue = Math.floor(Math.random()*5);
+			var randomValue = Math.floor(Math.random()*10);
 			if (randomValue == 0)
 			{
 				var wcoords = Utils.blockCoords2WorldCoords(bx, by);
 				var powerup = map.powerups.create(wcoords.x, wcoords.y, "global_spritesheet");
 				map.board[bx][by].hasPowerUp = true;
+				map.board[bx][by].powerup = powerup;
 				var randomPowerUp = powerups[Math.floor(Math.random() * powerups.length)];
 				powerup.frameName = randomPowerUp;
 				powerup.anchor.x = 0.5;
@@ -465,25 +639,17 @@ Bomberman.Game.prototype = {
 				var scaleY = map.terrainBlockSize / dim.height;
 				powerup.scale.set(scaleX,scaleY);	
 			}
-			//else if (randomValue == 1)
-			//{
-			//	var wcoords = Utils.blockCoords2WorldCoords(bx, by);
-			//	var powerup = map.powerups.create(wcoords.x, wcoords.y, "global_spritesheet");
-			//	map.board[bx][by].hasPowerUp = true;
-			//	powerup.frameName = "powerup_increase_bomb_range.png";
-			//	powerup.anchor.x = 0.5;
-			//	powerup.anchor.y = 0.5;
-			//	var dim = Utils.getFrameDimensions("powerup_increase_bomb_range.png", this.game.cache);
-			//	var scaleX = map.terrainBlockSize / dim.width;
-			//	var scaleY = map.terrainBlockSize / dim.height;
-			//	powerup.scale.set(scaleX,scaleY);	
-			//}
 
 			output = false;
 
 		} else if(cell.terrain == TerrainType.EMPTY) {
-
+			if (map.board[bx][by].hasPowerUp)
+			{
+				map.board[bx][by].powerup.destroy();
+				map.board[bx][by].hasPowerUp = false;
+			}
 			output = false;
+
 		}
 
 		if(output == false) {
@@ -492,10 +658,10 @@ Bomberman.Game.prototype = {
 			//first, check the lookahead coords to know whether
 			//we have to use the middle sprite or the end sprite
 			var frameName;
-			if( Utils.outsideBoard(next_bx,next_by))
+			if( Utils.outsideBoard(next_bx,next_by) || maxRangeReached)
 				frameName = frnameEnd;
 			else {
-				var nextTerrain = map.board[next_bx][next_by];
+				var nextTerrain = map.board[next_bx][next_by].terrain;
 				if(nextTerrain == TerrainType.EMPTY || nextTerrain == TerrainType.GRASS)
 					frameName = frnameMiddle;
 				else 
