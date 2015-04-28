@@ -1,4 +1,3 @@
-
 // set up ======================================
 // get all the tools we need
 var express 	= require('express');
@@ -11,6 +10,7 @@ var bodyParser		= require('body-parser');
 var session			= require('express-session');
 
 var app 			= express();
+
 var http_server		= require('http').Server(app);
 var io  			= require('socket.io')(http_server);
 
@@ -42,5 +42,6 @@ require('./Server/routes.js')(app, passport); //load our routes and pass in our 
 // launch =============================================
 
 var port = 8000;
+
 http_server.listen(port);
 console.log('The magic happens on port ' + port);
