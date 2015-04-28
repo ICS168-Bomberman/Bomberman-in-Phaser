@@ -11,10 +11,15 @@ var bodyParser		= require('body-parser');
 var session			= require('express-session');
 
 var app 			= express();
+var http_server		= require('http').Server(app);
+var io  			= require('socket.io')(http_server);
 
 // configuration =================================
 mongoose.connect("mongodb://localhost/passport"); // connect to our database
 require('./Server/config/passport')(passport); // pass passport for configuration
+
+//set up our socket.io server
+require('./Server/socket_server')(io);
 
 // set up our express application
 app.use(bodyParser.json()); // get information from html forms
@@ -37,5 +42,5 @@ require('./Server/routes.js')(app, passport); //load our routes and pass in our 
 // launch =============================================
 
 var port = 8000;
-app.listen(port);
+http_server.listen(port);
 console.log('The magic happens on port ' + port);
