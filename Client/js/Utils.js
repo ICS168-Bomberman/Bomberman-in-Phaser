@@ -29,7 +29,6 @@ var Utils = {
 		wcoords.y = map.offsetY + by * map.terrainBlockSize;
 		return wcoords;
 	},
-
 	worldCoords2BlockCoords: function(x, y, height, width)
 	{
 		var blockCoords = {};
@@ -42,7 +41,6 @@ var Utils = {
 						map.terrainBlockSize);
 		return blockCoords;
 	},
-
 	create_2D_array: function(width, height) {
    	var array = new Array(width);
    	for (var i = 0; i < width; i++) {
