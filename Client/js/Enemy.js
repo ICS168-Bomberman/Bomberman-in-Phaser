@@ -16,3 +16,6 @@ Enemy.prototype = {
 	}
 
 };
+
+console.log("Enemy = " + Enemy);
+console.log(Enemy);

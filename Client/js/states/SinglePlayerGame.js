@@ -1,7 +1,7 @@
 var Bomberman = Bomberman || {};
 
 //title screen
-Bomberman.Game = function(){};
+Bomberman.SinglePlayerGame = function(){};
 
 //Terrain Enum
 var TerrainType = Object.freeze({
@@ -17,7 +17,6 @@ var keyboard = {};
 var players = [];
 
 //enemies
-var Enemy = function() {};
 var enemies = [];
 var enemyWalkCounter = 1000;
 var direction;
@@ -48,7 +47,7 @@ map.bombCounter = 0;
 //powerups
 var powerups = ["powerup_increase_bomb_drops.png", "powerup_increase_bomb_range.png", "powerup_increase_speed.png", "powerup_decrease_speed.png"];
 
-Bomberman.Game.prototype = {
+Bomberman.SinglePlayerGame.prototype = {
 
   create: function() {  	
 
@@ -58,6 +57,10 @@ Bomberman.Game.prototype = {
 
   		//generate map
 		this.generateMap();
+
+		//run the background music
+		var audio = new Audio('Client/assets/music/Bomberman Theme.mp3');
+		audio.play();
   },
 
   generateMap: function() {
@@ -302,6 +305,8 @@ Bomberman.Game.prototype = {
 				enemies[i].alive = false;
 				enemies[i].sprite.destroy();
 				Utils.removeElementFromArray(enemies[i], enemies);
+
+				--i;
 				var audio = new Audio('Client/assets/music/PAUSE.wav');
 				audio.play();
 
@@ -315,11 +320,17 @@ Bomberman.Game.prototype = {
 
 		}
 
-		//which block is player1 standing in right now?
+		//update players' block coordinates
 		for(var i = 0; i < players.length; ++i)
 		{
 			players[i].updateBlockCoordinates();
 		}
+
+		//update enemies' block coordinates
+		for(var i = 0; i < enemies.length; ++i) {
+			enemies[i].updateBlockCoordinates();
+		}
+
 
 		//handle player movement and related animations
 		if(player1.alive) {
@@ -369,37 +380,45 @@ Bomberman.Game.prototype = {
 			if (moveChooser == 1)
 			{
 				setTimeout(function(){
-					enemy.sprite.body.velocity.x = -enemy.vel;
-					enemy.standingFrame = enemy.standingLeft ;
-					enemy.sprite.animations.play('left');
-					direction = 1;
+					if(enemy.alive) {
+						enemy.sprite.body.velocity.x = -enemy.vel;
+						enemy.standingFrame = enemy.standingLeft ;
+						enemy.sprite.animations.play('left');
+						direction = 1;
+					}
 				}, enemyWalkCounter)
 			}
 			else if (moveChooser == 2)
 			{
 				setTimeout(function(){
-					enemy.sprite.body.velocity.x = enemy.vel;
-					enemy.standingFrame =enemy.standingRight;
-					enemy.sprite.animations.play('right');
-					direction = 2;
+					if(enemy.alive) {
+						enemy.sprite.body.velocity.x = enemy.vel;
+						enemy.standingFrame =enemy.standingRight;
+						enemy.sprite.animations.play('right');
+						direction = 2;
+					}
 				}, enemyWalkCounter)
 			}
 			else if (moveChooser == 3)
 			{
 				setTimeout(function(){
-					enemy.sprite.body.velocity.y = -enemy.vel;
-					enemy.standingFrame = enemy.standingUp;
-					enemy.sprite.animations.play('up');	
-					direction = 3;
+					if(enemy.alive) {
+						enemy.sprite.body.velocity.y = -enemy.vel;
+						enemy.standingFrame = enemy.standingUp;
+						enemy.sprite.animations.play('up');	
+						direction = 3;
+					}
 				}, enemyWalkCounter)
 			}
 			else if (moveChooser == 4)
 			{
 				setTimeout(function(){
-					enemy.sprite.body.velocity.y = enemy.vel;
-					enemy.standingFrame = enemy.standingDown;
-					enemy.sprite.animations.play('down');
-					direction = 4;
+					if(enemy.alive) {
+						enemy.sprite.body.velocity.y = enemy.vel;
+						enemy.standingFrame = enemy.standingDown;
+						enemy.sprite.animations.play('down');
+						direction = 4;
+					}
 				}, enemyWalkCounter)
 			}
 
