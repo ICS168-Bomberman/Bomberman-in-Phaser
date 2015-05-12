@@ -14,25 +14,28 @@ function server(io, UUID) {
 	io.on('connection', function(socket) {
 
 		var client = new Client(socket,UUID());
+		clients[client.user_id] = client;
 
 		//send the userid assigned to the client
 		client.socket.emit('onconnected', {id: client.user_id});
-
 		console.log('socket.io:: player ' + client.user_id + ' connected');
 
-
 		//register event handlers
-		client.socket.on('get gamelist', sendGameList.bind(client) );
-		client.socket.on('host new game', handle_hostNewGameQuery.bind(client) );
-		client.socket.on('join existing game', handle_joinExistingGameEvent.bind(client) );
-		client.socket.on('leaving lobby', handle_leavingLobbyEvent.bind(client) );
-
-
+		client.socket.on('get gamelist', sendGameList.bind(client));
+		client.socket.on('host new game', handle_hostNewGameQuery.bind(client));
+		client.socket.on('join existing game', handle_joinExistingGameEvent.bind(client));
+		client.socket.on('leaving lobby', handle_leavingLobbyEvent.bind(client));
+		client.socket.on('I want to start the game', handle_wantStartGame.bind(client));
+		client.socket.on('disconnect', handle_disconnect.bind(client));
 	});
 
+	//the client is requeting the game list because he/she is entering the 
+	//MultiplayerMenu state
 	function sendGameList() {
 
 		var client = this;
+
+		client.currentState = "MultiplayerMenu";
 
 		console.log('--------------------------------------------------');
 		console.log('===> sendGameList()');
@@ -49,7 +52,6 @@ function server(io, UUID) {
 			var num_of_players = pending_games[i].getNumPlayers();
 
 			if(num_of_players >= 1 && num_of_players <= 3) {
-
 
 				var id = pending_games[i].id;
 
@@ -126,9 +128,12 @@ function server(io, UUID) {
 		client.socket.emit('gamelist', data);
 	};
 
+	//the client is trying to become the host of a game. If the client succeeds, tne he/she will
+	//enter the lobby state
 	function handle_hostNewGameQuery(data) {
 
 		var client = this;
+		client.game_id = data.game_id;
 
 		console.log('--------------------------------------------------');
 		console.log('===> handle_hostNewGameQuery()');
@@ -140,6 +145,9 @@ function server(io, UUID) {
 		//check that the game is empty first, otherwise somebody else is already hosting it	
 		if(game_handle.state != "empty")
 			return;
+
+		//set the client current state
+		client.currentState = "lobby";
 		
 		//add the client to the pending game
 		game_handle.pending_game.addPlayer(client);
@@ -171,12 +179,14 @@ function server(io, UUID) {
 			playerNumber: 0
 		};
 		client.socket.emit('feel free to host', data);
-		
 	};
 
+	//the client is trying to join a game. If the client succeeds, tne he/she will
+	//enter the lobby state
 	function handle_joinExistingGameEvent(data) {
 
 		var client = this;
+		client.game_id = data.game_id;
 
 		console.log('--------------------------------------------------');
 		console.log('===> handle_joinExistingGameEvent()');
@@ -188,6 +198,9 @@ function server(io, UUID) {
 		//check that the game state is joinable
 		if(game_handle.state != "joinable")
 			return;
+
+		//set the client's current state
+		client.currentState = "lobby";
 		
 		//add the client to the pending game
 		var spotNumber = game_handle.pending_game.addPlayer(client);
@@ -228,9 +241,12 @@ function server(io, UUID) {
 		game_handle.pending_game.notifyOtherPlayersNewUserJoined(spotNumber);
 	};
 
+	//the client is leaving the lobby, there he/she will be back into the MultiplayerMenu state
 	function handle_leavingLobbyEvent(data) {
 
 		var client = this;
+
+		client.currentState = "MultiplayerMenu";
 
 		console.log('--------------------------------------------------');
 		console.log('===> handle_leavingLobbyEvent()');
@@ -262,6 +278,23 @@ function server(io, UUID) {
 		//send the game list to client since he/she is going back to the MultiplayerMenu
 		sendGameList.call(client);
 	};
+
+	function handle_wantStartGame(data) {		
+		var client = this;
+	};
+
+	function handle_disconnect() {
+		var client = this;
+
+		//remove client from the clients map
+		delete clients[client.user_id];
+
+		//check the state of the client and perform
+		//actions accordingly		
+		if(client.currentState == "lobby") {			
+			handle_leavingLobbyEvent({game_id: client.game_id}).call(client);
+		}
+	}
 
 };
 

@@ -10,7 +10,7 @@ Bomberman.Lobby.prototype = {
 		console.log("===> Lobby.create()");
 
 
-		this.numPlayers = lobbyReceivedData.indices.length;
+		this.numPlayers = lobbyReceivedData.playerIndices.length;
 
 		//offsets
 		this.startBtnOffsetX = 100;
@@ -177,10 +177,43 @@ Bomberman.Lobby.prototype = {
 
 	checkIfCanStartGame: function() {
 		if(this.numPlayers >= 2) {
-			//do something
+
+			//update min players message
+			this.minPlayersMessage.text = "There are enough players to\nstart the game now !!";			
+			this.minPlayersMessage.fill = "green";
+
+			//recreate the start button and make it clickable
+			this.startGameButton.destroy();
+			this.startGameButton = this.game.add.button(
+				this.startBtnOffsetX, 
+				this.startBtnOffsetY,
+				"global_spritesheet", 
+				this.startGameBtnClicked, this, 
+				"button_start_game_over.png",  
+				"button_start_game_out.png"
+			);	
+
 		} else {
-			//do something else
+
+			//update min players message
+			this.minPlayersMessage.text = "Cannot start the game without\nat least 2 players."
+			this.minPlayersMessage.fill = "red";
+
+			//recreate the start button and make it unclickable
+			this.startGameButton.destroy();
+			this.startGameButton = this.game.add.button(
+				this.startBtnOffsetX, 
+				this.startBtnOffsetY,
+				"global_spritesheet", 
+				null, this, 
+				"button_start_game_locked.png",  
+				"button_start_game_locked.png"
+			);			
 		}
+	},
+
+	startGameBtnClicked: function() {
+		socket.emit('I want to start the game', {game_id: gameID});
 	}
 
 
