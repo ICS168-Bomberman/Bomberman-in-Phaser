@@ -6,13 +6,16 @@
     <script type="text/javascript" src="Client/js/libraries/phaser.js"></script>
 	<script type="text/javascript" src="Client/js/Utils.js"></script>
 	<script type="text/javascript" src="Client/js/Player.js"></script>
-	<script type="text/javascript" src="Client/js/Bomb.js"></script>
     <script type="text/javascript" src="Client/js/Enemy.js"></script>
-    <script type="text/javascript" src="Client/js/Door.js"></script>   
+	<script type="text/javascript" src="Client/js/Bomb.js"></script>
+    <script type="text/javascript" src="Client/js/Door.js"></script>
 	<script type="text/javascript" src="Client/js/Explosion.js"></script>
-	<script type="text/javascript" src="Client/js/Boot.js"></script>
-	<script type="text/javascript" src="Client/js/Preload.js"></script>
-	<script type="text/javascript" src="Client/js/Game.js"></script>
+	<script type="text/javascript" src="Client/js/states/Boot.js"></script>
+	<script type="text/javascript" src="Client/js/states/Preload.js"></script>
+	<script type="text/javascript" src="Client/js/states/IntroMenu.js"></script>
+    <script type="text/javascript" src="Client/js/states/MultiplayerMenu.js"></script>
+    <script type="text/javascript" src="Client/js/states/SinglePlayerGame.js"></script>
+    <script type="text/javascript" src="Client/js/states/Lobby.js"></script>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
 
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
@@ -45,20 +48,12 @@
                     USERNAME NOT FOUND, THIS SHOULD NOT BE HAPPENING
                 <% } %>
 
-</body>
-
             </div>
         </div>
 	</div>
     <div id="game_div"></div>
     <script src="Client/js/main.js"></script>
-    <script>
-        var socket = io();
-        socket.on('message', function(msg) {
-            console.log("Message received from server: " + msg);
-            socket.emit('message', 'Hello, dear server!');
-        });
-    </script>
+    <script src="Client/js/socket_logic.js"></script>
 </div>
 </body>
 </html>

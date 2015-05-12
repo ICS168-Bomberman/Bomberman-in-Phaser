@@ -14,12 +14,14 @@ var app 			= express();
 var http_server		= require('http').Server(app);
 var io  			= require('socket.io')(http_server);
 
+var UUID 			= require('node-uuid');
+
 // configuration =================================
 mongoose.connect("mongodb://localhost/passport"); // connect to our database
 require('./Server/config/passport')(passport); // pass passport for configuration
 
 //set up our socket.io server
-require('./Server/socket_server')(io);
+require('./Server/socket_server')(io, UUID);
 
 // set up our express application
 app.use(bodyParser.json()); // get information from html forms
