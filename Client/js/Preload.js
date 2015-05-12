@@ -13,7 +13,8 @@ Bomberman.Preload.prototype = {
       'Client/assets/images/sprites/Doria_Ghost_atlas.json');
     this.load.atlasJSONHash('Door_spritesheet', 'Client/assets/images/sprites/Door.png', 
       'Client/assets/images/sprites/Door_atlas.json'); 	
-    this.load.image('game_over', 'Client/assets/images/Game_Over.png');
+    this.load.image('you_lose', 'Client/assets/images/You_Lose.png');
+    this.load.image('you_win', 'Client/assets/images/You_Win.png');
   },
   create: function() {
   	//this.state.start('MainMenu');

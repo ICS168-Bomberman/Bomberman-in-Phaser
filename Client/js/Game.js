@@ -65,6 +65,15 @@ var powerups = ["powerup_increase_bomb_drops.png", "powerup_increase_bomb_range.
 //other
 var numberOfGrass = 0;
 var switchCount = 0;
+var moveChooser = 0;
+
+var timer;
+var s = 40;
+var timesUp = false;
+var Score;
+var score = 0;
+
+var gameOver = false;
 
 Bomberman.Game.prototype = {
 
@@ -76,6 +85,30 @@ Bomberman.Game.prototype = {
 
   		//generate map
 		this.generateMap();
+
+
+		 var startTime = function() {
+		    if (!gameOver && s > -1)
+		    {
+		    	timer.text = ("Timer: " + s);
+		    	s--;
+		    	var t = setTimeout(function(){startTime()},1000);
+		    }
+		    else if (gameOver && s > -1)
+		    {
+		    	score++;
+		    	timer.text = ("Timer: " + s);
+		    	s--;
+		    	Score.text = ("Score: " + score);
+		    	var t = setTimeout(function(){startTime()},100);
+		    }
+		    else
+		    {
+		    	timesUp = true;
+		    }
+		}
+
+		startTime();
   },
 
   generateMap: function() {
@@ -83,15 +116,26 @@ Bomberman.Game.prototype = {
 		//create map as a bidimensional array
 
 		//map.width = 23; //3 + 2*n
-		map.width = this.game.rnd.integerInRange(2, 3) * 2  + 3;
+		map.width = this.game.rnd.integerInRange(2, 2) * 2  + 3;
 		//map.height = 19;
-		map.height = this.game.rnd.integerInRange(2, 3) * 2  + 3;
+		map.height = this.game.rnd.integerInRange(2, 2) * 2  + 3;
 
 		map.offsetX = 100;
 		map.offsetY = 50;
 		map.terrainBlockSize = 35;
 		map.playerBlockSize = 20;
 		map.board = Utils.create_2D_array(map.width,map.height);
+
+		timer = this.game.add.text(100, 0, "Timer: " + s);
+		timer.font = "Carter One";
+		timer.fill = "red";
+		timer.fontSize = 30;
+
+		Score = this.game.add.text(250, 0, "Score: " + score);
+		Score.font = "Carter One";
+		Score.fill = "blue";
+		Score.fontSize = 30;
+
 
 		/////////////////////////////
 		/////  CREATING PLAYER 1 ////
@@ -233,7 +277,7 @@ Bomberman.Game.prototype = {
 
 		//computing initial coordinates
 		enemy1.x = -map.offsetX-5 + (map.width + 4)*map.terrainBlockSize;
-		enemy1.y = -map.offsetY-5 + (map.height + 1)*map.terrainBlockSize;	
+		enemy1.y = map.offsetY+5 + map.terrainBlockSize*Math.floor((Math.random() * (map.height-2)) + 1);
 
 		//creating the sprite
 		enemy1.sprite = this.game.add.sprite(enemy1.x,enemy1.y, 'Pass_Bear_spritesheet');	
@@ -291,7 +335,7 @@ Bomberman.Game.prototype = {
 		/////////////////////////////
 
 		//computing initial coordinates
-		enemy2.x = map.offsetX + map.terrainBlockSize;
+		enemy2.x = map.offsetX + map.terrainBlockSize * Math.floor((Math.random() * (map.width-2)) + 1);
 		enemy2.y = -map.offsetY-5 + (map.height + 1)*map.terrainBlockSize;	
 
 		//creating the sprite
@@ -348,12 +392,23 @@ Bomberman.Game.prototype = {
 
 	update: function() {
 
+		if (timesUp && !gameOver)
+		{
+			alert("TIME'S UP!!!!");
+			this.game.add.sprite(0,28, 'you_lose');
+			var audio = new Audio('Client/assets/music/HURRYUP.wav');
+			audio.play();
+			timesUp = false;
+			gameOver = true;
+
+		}
+
 		//check player collisions
 
 		for(var i = 0; i < players.length; ++i) {
 
 			if(players[i].destroyMe) {
-
+				this.game.add.sprite(0, 28, 'you_lose');
 				players[i].alive = false;
 				players[i].sprite.destroy();
 				Utils.removeElementFromArray(players[i], players);
@@ -361,6 +416,7 @@ Bomberman.Game.prototype = {
 				--i;
 				var audio = new Audio('Client/assets/music/PLAYER_OUT.wav');
 				audio.play();
+				gameOver = true;
 
 			} else {
 				if (players[i].blockCoords.x == door.blockCoords.x && players[i].blockCoords.y == door.blockCoords.y && !enter && enemies.length == 0)
@@ -368,8 +424,8 @@ Bomberman.Game.prototype = {
 					var audio = new Audio('Client/assets/music/P1UP.wav');
 					audio.play();
 					enter = true;
-					this.game.add.sprite(0,0, 'game_over');
-
+					this.game.add.sprite(0,28, 'you_win');
+					gameOver = true;
 				}
 				this.game.physics.arcade.collide(players[i].sprite, map.rockBlocks);
 				this.game.physics.arcade.collide(players[i].sprite, map.grassBlocks);
@@ -379,9 +435,11 @@ Bomberman.Game.prototype = {
 				this.game.physics.arcade.overlap(players[i].sprite, map.enemies, this.destroyPlayer, null, players[i]);	
 			}
 		}
+
 		for(var i = 0; i < enemies.length; ++i) {
 			if(enemies[i].destroyMe) {
-
+				score++;
+				Score.text = ("Score: " + score);
 				enemies[i].alive = false;
 				enemies[i].sprite.destroy();
 				Utils.removeElementFromArray(enemies[i], enemies);
@@ -392,7 +450,7 @@ Bomberman.Game.prototype = {
 				this.game.physics.arcade.collide(enemies[i].sprite, map.rockBlocks);
 				//this.game.physics.arcade.collide(enemies[i].sprite, map.grassBlocks);
 				this.game.physics.arcade.collide(enemies[i].sprite, map.bombs);		
-				this.game.physics.arcade.overlap(enemies[i].sprite, map.powerups, this.handlePowerUps, null, enemies[i]);
+				//this.game.physics.arcade.overlap(enemies[i].sprite, map.powerups, this.handlePowerUps, null, enemies[i]);
 				this.game.physics.arcade.overlap(enemies[i].sprite, map.explosions, this.destroyPlayer, null, enemies[i]);	
 			}
 
@@ -447,7 +505,7 @@ Bomberman.Game.prototype = {
 			enemy1.sprite.body.velocity.x = 0;
 			enemy1.sprite.body.velocity.y = 0;
 
-			var moveChooser = Math.floor((Math.random() * 4) + 1);
+			moveChooser = Math.floor((Math.random() * 4) + 1);
 
 			if (moveChooser == 1)
 			{
@@ -531,9 +589,9 @@ Bomberman.Game.prototype = {
 			enemy2.sprite.body.velocity.x = 0;
 			enemy2.sprite.body.velocity.y = 0;
 
-			var moveChooser = Math.floor((Math.random() * 4) + 1);
+			moveChooser = Math.floor((Math.random() * 9) + 6);
 
-			if (moveChooser == 1)
+			if (moveChooser == 9)
 			{
 				setTimeout(function(){
 					if (enemy2.alive)
@@ -545,7 +603,7 @@ Bomberman.Game.prototype = {
 					}
 				}, enemy2WalkCounter)
 			}
-			else if (moveChooser == 2)
+			else if (moveChooser == 8)
 			{
 				setTimeout(function(){
 					if (enemy2.alive)
@@ -557,7 +615,7 @@ Bomberman.Game.prototype = {
 					}
 				}, enemy2WalkCounter)
 			}
-			else if (moveChooser == 3)
+			else if (moveChooser == 7)
 			{
 				setTimeout(function(){
 					if (enemy2.alive)
@@ -569,7 +627,7 @@ Bomberman.Game.prototype = {
 					}
 				}, enemy2WalkCounter)
 			}
-			else if (moveChooser == 4)
+			else if (moveChooser == 6)
 			{
 				setTimeout(function(){
 					if (enemy2.alive)
@@ -615,7 +673,8 @@ Bomberman.Game.prototype = {
 	{
 		var bx = this.blockCoords.x;
 		var by = this.blockCoords.y;
-		
+		//console.log(bx);
+		//console.log(by);
 		if (map.board[bx][by].hasPowerUp)
 		{
 			var audio = new Audio('Client/assets/music/ITEM_GET.wav');
