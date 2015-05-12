@@ -10,7 +10,7 @@ Bomberman.Lobby.prototype = {
 		console.log("===> Lobby.create()");
 
 
-		this.numPlayers = lobbyReceivedData.indices.length;
+		this.numPlayers = lobbyReceivedData.playerIndices.length;
 
 		//offsets
 		this.startBtnOffsetX = 100;

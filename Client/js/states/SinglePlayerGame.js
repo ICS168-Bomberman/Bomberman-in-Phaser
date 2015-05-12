@@ -420,7 +420,7 @@ console.log("CREATE");
 				audio.play();
 				gameOver = true;
 
-			} else {
+			} else if (!gameOver){
 				if (players[i].blockCoords.x == door.blockCoords.x && players[i].blockCoords.y == door.blockCoords.y && !enter && enemies.length == 0)
 				{
 					var audio = new Audio('Client/assets/music/P1UP.wav');
