@@ -19,7 +19,7 @@ var GameHandle = function(id) {
 GameHandle.prototype = {
 
 	//we send information to all the followers of this game (all the users who are displaying
-	//a game slot for this game in the MultiplayerMenu) so that they can update the
+	//a game slot for this game in the MultiplayerMenu) so that they can update their GUI
 	notifyFollowersNewUserJoined: function() {
 
 		console.log('--------------------------------------------------');
@@ -42,10 +42,40 @@ GameHandle.prototype = {
 		    if (!this.followers.hasOwnProperty(user_id))
 		        continue;
 
-		    this.followers[user_id].socket.emit("new user joined", data);
+		    this.followers[user_id].socket.emit("new user joined a game", data);
+
+		}
+	},
+
+	//we send information to all the followers of this game (all the users who are displaying
+	//a game slot for this game in the MultiplayerMenu) so that they can update their GUI
+	notifyFollowerSomeUserLeft: function() {
+
+		console.log('--------------------------------------------------');
+		console.log('===> GameHandle.notifyFollowerSomeUserLeft()');
+
+		var data = {
+			game_id: this.id,
+			num_players: this.pending_game.getNumPlayers(),
+			state: this.state
+		};
+
+		console.log("data to send:");
+		console.log(data);
+		console.log("our followers are:");
+		console.log(this.followers);
+
+
+		for (var user_id in this.followers) {
+
+		    if (!this.followers.hasOwnProperty(user_id))
+		        continue;
+
+		    this.followers[user_id].socket.emit("some user left a game", data);
 
 		}
 	}
+
 
 };
 

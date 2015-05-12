@@ -3,6 +3,8 @@ var Bomberman = Bomberman || {};
 //title screen
 Bomberman.IntroMenu = function(){};
 
+var gamelist;
+
 Bomberman.IntroMenu.prototype = {
 
 	create: function() {  	
@@ -27,12 +29,14 @@ Bomberman.IntroMenu.prototype = {
 			console.log(data);
 
 			gamelist = data;
+			socket.removeAllListeners();
 			Bomberman.game.state.start("MultiplayerMenu");
 
 		});
 	},
 
 	launchSinglePlayerState: function() {
+		socket.removeAllListeners();
 		this.game.state.start("SinglePlayerGame");
 	},
 

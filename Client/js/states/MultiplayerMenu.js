@@ -7,7 +7,10 @@ var GameSlotState = {
 	EMPTY: "empty"
 };
 
-var gamelist;
+var gameID;
+var IamHost;
+var lobbyReceivedData;
+var playerNumber;
 
 Bomberman.MultiplayerMenu = function(){};
 
@@ -45,6 +48,8 @@ Bomberman.MultiplayerMenu.prototype = {
 				callback: null
 			}
 		};
+
+		IamHost = false;
 
 		this.game_slots = {};
 
@@ -91,6 +96,8 @@ Bomberman.MultiplayerMenu.prototype = {
 			//for immediate access
 			this.game_slots[key] = game_slot;
 			i++;
+
+
 		}
 
 		//==============================================
@@ -99,10 +106,10 @@ Bomberman.MultiplayerMenu.prototype = {
 
 		var self = this;
 
-		socket.on('new user joined', function(data) {			
+		socket.on('new user joined a game', function(data) {			
 
 			console.log('-------------------------------');
-			console.log('==> On "new user joined" event');
+			console.log('==> On "new user joined a game" event');
 			console.log('the data received is:');
 			console.log(data);
 
@@ -114,9 +121,47 @@ Bomberman.MultiplayerMenu.prototype = {
 
 		});
 
+		socket.on('some user left a game', function(data) {			
+
+			console.log('-------------------------------');
+			console.log('==> On "some user left a game" event');
+			console.log('the data received is:');
+			console.log(data);
+
+			var game_slot = self.game_slots[data.game_id];
+			game_slot.state = data.state;
+			game_slot.num_players = data.num_players;
+
+			self.updateGameSlot(game_slot);
+
+		});
+
+		socket.on('feel free to host', function(data) {
+			gameID = data.game_id;
+			lobbyReceivedData = data.lobbyData;
+			playerNumber = data.playerNumber;
+			socket.removeAllListeners();
+			IamHost = true;
+			self.game.state.start('Lobby');
+		});
+
+		socket.on('feel free to join', function(data) {
+			gameID = data.game_id;
+			lobbyReceivedData = data.lobbyData;
+			playerNumber = data.playerNumber;
+			socket.removeAllListeners();
+			IamHost = false;
+			self.game.state.start('Lobby');
+		});
+
 	},
 
 	button_join_game_clicked: function() {
+
+		console.log("-----------------------------------------");
+		console.log("SENDING 'join existing game' message to server");
+		console.log("where game_id = " + this.game_id);
+		socket.emit("join existing game", {game_id: this.game_id});
 
 	},
 
@@ -152,7 +197,7 @@ Bomberman.MultiplayerMenu.prototype = {
 		var text = this.game.add.text(game_slot.offsetX + 20, game_slot.offsetY + 10,  settings.text);
 			text.font = "Carter One";
 			text.fill = "white";
-			text.fontSize = 18;
+			text.fontSize = 18;			
 
 	}
 
