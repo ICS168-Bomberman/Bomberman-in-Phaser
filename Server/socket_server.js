@@ -2,6 +2,8 @@ var Game = require('./game.js');
 var PendingGame = require('./pending_game.js');
 var GameHandle = require('./game_handle.js');
 var Client = require('./client.js');
+var Utils = require('./Utils.js');
+
 
 function server(io, UUID) {
 
@@ -10,6 +12,14 @@ function server(io, UUID) {
 	var pending_games = [];
 	var gameHandles = {};
 	var clients = {};
+
+	//Terrain Enum
+	var TerrainType = Object.freeze({
+	  ROCK : 1,
+	  GRASS : 2,
+	  EMPTY: 3
+	});
+
 
 	io.on('connection', function(socket) {
 
@@ -27,6 +37,7 @@ function server(io, UUID) {
 		client.socket.on('leaving lobby', handle_leavingLobbyEvent.bind(client));
 		client.socket.on('I want to start the game', handle_wantStartGame.bind(client));
 		client.socket.on('disconnect', handle_disconnect.bind(client));
+		//client.socket.on('my coordinates', handle_coordinatesReceived.bind(client));
 	});
 
 	//the client is requeting the game list because he/she is entering the 
@@ -148,6 +159,7 @@ function server(io, UUID) {
 
 		//set the client current state
 		client.currentState = "lobby";
+		client.playerNumber = 0;
 		
 		//add the client to the pending game
 		game_handle.pending_game.addPlayer(client);
@@ -204,6 +216,9 @@ function server(io, UUID) {
 		
 		//add the client to the pending game
 		var spotNumber = game_handle.pending_game.addPlayer(client);
+
+		//set the client's playerNumber
+		client.playerNumber = spotNumber;
 
 		//update state of the game handle according the number of players
 		var num_players = game_handle.pending_game.getNumPlayers();			
@@ -279,8 +294,91 @@ function server(io, UUID) {
 		sendGameList.call(client);
 	};
 
-	function handle_wantStartGame(data) {		
+	function handle_wantStartGame(data) {
+
 		var client = this;
+
+		console.log('--------------------------------------------------');
+		console.log('===> handle_wantStartGame()');
+		console.log('handle_wantStartGame(): client ' + client.user_id + ' want to start the game = ' + data.game_id);
+
+		
+		var game_handle = gameHandles[data.game_id];
+		if(game_handle.pending_game.getNumPlayers() < 2)
+			return;
+
+		console.log("debug #1");
+
+		var data = {};
+
+		var game = game_handle.game;
+		var map = game.map;
+
+		//pour non-null players from pending game to game
+		for(var i = 0; i < 4; ++i) {
+			if(game_handle.pending_game.spots[i].available)
+				continue;
+			game.players[i] = game_handle.pending_game.players[i];
+		}
+
+		console.log("debug #2");
+
+		//==============================
+		// generate map randomly
+		//==============================
+
+		//map.width = 23; //3 + 2*n
+		var width = (Math.floor(Math.random() * 5) + 2) * 2 + 3
+		var height = (Math.floor(Math.random() * 5) + 6) * 2 + 3
+		game.createBoard(width,height);
+
+		map.width = width;
+		map.height = height;
+
+		var grassblocks = [];
+
+		console.log("debug #3");
+
+		for(var i = 0; i < map.width; ++i) {
+			for(var j = 0; j <  map.height; ++j) {
+				x = map.offsetX + i*map.terrainBlockSize;
+				y = map.offsetY + j*map.terrainBlockSize;
+				if(i == 0 || i == map.width -1 || j ==0 || j == map.height -1
+				  || (i%2 == 0 && j%2 == 0)) {
+
+					map.board[i][j].terrain = TerrainType.ROCK;
+
+				} else if(!Utils.isInRangeOfSomePlayer(x,y, game.defaultBombRange, game.players)) {
+					
+					map.board[i][j].terrain = TerrainType.GRASS;
+					grassblocks.push(map.board[i][j]);
+
+				} else {
+
+					map.board[i][j].terrain = TerrainType.EMPTY;
+				}
+			}
+		}
+
+		console.log("debug #4");
+
+		//choose block of grass where we are going to place the door randomly
+		var chosenGrassBlock  = grassblocks[Math.floor(Math.random()*grassblocks.length)];
+		data.doorCoordinates = {x: chosenGrassBlock.x, y: chosenGrassBlock.y};
+
+		//save map dimensions		
+		data.mapWidth = width;
+		data.mapHeight = height;
+
+		//tell all the players in the game that they can start the game
+		//and send map data
+		for(var i = 0; i < 4; ++i) {
+			if(game.players[i] == null)
+				continue;
+			game.players[i].socket.emit('feel free to start the game', data);
+		}
+
+		console.log("debug #5");
 	};
 
 	function handle_disconnect() {
@@ -292,9 +390,19 @@ function server(io, UUID) {
 		//check the state of the client and perform
 		//actions accordingly		
 		if(client.currentState == "lobby") {			
-			handle_leavingLobbyEvent({game_id: client.game_id}).call(client);
+			handle_leavingLobbyEvent.call(client, 
+				{game_id: client.game_id,
+				spotNumber: client.playerNumber} );
 		}
+	};
+
+	/*
+	function handle_coordinatesReceived(data) {
+		var client = this;
+		var game_handle = game_handles[client.game_id];
+
 	}
+	*/
 
 };
 

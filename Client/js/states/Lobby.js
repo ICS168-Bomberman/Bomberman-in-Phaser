@@ -89,11 +89,12 @@ Bomberman.Lobby.prototype = {
 		this.startGameButton.visible = IamHost;
 		this.minPlayersMessage.visible = IamHost;
 
-		//register call back functions
+		//register callback functions
 		socket.on("new user has joined the lobby", this.handle_newUserJoined.bind(this));
 		socket.on("a user has left the lobby", this.handle_someUserHasLeft.bind(this));
 		socket.on("gamelist", this.goBackToMultiplayerMenu);
 		socket.on("you are the new host", this.enableHostMode.bind(this));
+		socket.on("feel free to start the game", this.runGame.bind(this));
 
 	},
 
@@ -141,6 +142,7 @@ Bomberman.Lobby.prototype = {
 		var spotNumber = data.spotNumber;
 		this.characterHeads[spotNumber].visible = false;
 		this.numPlayers--;
+
 		if(IamHost) {
 			this.checkIfCanStartGame();
 		}
@@ -176,6 +178,7 @@ Bomberman.Lobby.prototype = {
 	},
 
 	checkIfCanStartGame: function() {
+
 		if(this.numPlayers >= 2) {
 
 			//update min players message
@@ -214,6 +217,26 @@ Bomberman.Lobby.prototype = {
 
 	startGameBtnClicked: function() {
 		socket.emit('I want to start the game', {game_id: gameID});
+	},
+
+	runGame: function(data) {
+
+		mpg.doorCoordinates = data.doorCoordinates;
+		mpg.map.width = data.mapWidth;
+		mpg.map.height = data.mapHeight;
+		mpg.players = [null,null,null,null];		
+		for(var i = 0; i < 4; ++i) {
+			if(this.characterHeads[i].visible) {
+				mpg.players[i] = new Player();
+			}
+		}
+		mpg.myPlayerNumber = playerNumber;
+		mpg.myPlayer = mpg.players[playerNumber];
+
+		socket.removeAllListeners();	
+
+		//switch to the MultiplayerGame state
+		this.game.state.start('MultiplayerGame');
 	}
 
 

@@ -4,6 +4,7 @@ var Client = function(socket,user_id) {
 	this.following = []; //games that the player is following (tracking) in the MultiplayerMenu
 	this.currentState = "none";
 	this.game_id = null;
+	this.playerNumber = null;
 };
 
 Client.prototype = {
@@ -11,3 +12,5 @@ Client.prototype = {
 };
 
 module.exports = Client;
+
+

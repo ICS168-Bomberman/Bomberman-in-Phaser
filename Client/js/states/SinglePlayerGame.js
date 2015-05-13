@@ -18,7 +18,8 @@ var players = [];
 
 //enemies
 var enemies = [];
-var enemyWalkCounter = 1000;
+var enemy1WalkCounter = 1000;
+var enemy2WalkCounter = 1000;
 var direction;
 
 //player 1 default variables
@@ -31,12 +32,19 @@ players.push(player1);
 player1.alive = true;
 
 //enemy default variables
-var enemy = new Enemy();
-enemy.vel = 120;
-enemy.frameWidth = 16;
-enemy.frameHeight = 22;
-enemies.push(enemy);
-enemy.alive = true;
+var enemy1 = new Enemy();
+enemy1.vel = 120;
+enemy1.frameWidth = 16;
+enemy1.frameHeight = 22;
+enemies.push(enemy1);
+enemy1.alive = true;
+
+var enemy2 = new Enemy();
+enemy2.vel = 120;
+enemy2.frameWidth = 16;
+enemy2.frameHeight = 22;
+enemies.push(enemy2);
+enemy2.alive = true;
 
 //map
 var map = {};
@@ -44,13 +52,33 @@ map.initialBombRange = 1;
 map.initialNumberOfBombs = 1;
 map.bombCounter = 0;
 
+//door
+var door = new Door();
+door.frameWidth = 16;
+door.frameHeight = 22;
+var doorCount = 0;
+var enter = false;
+
 //powerups
 var powerups = ["powerup_increase_bomb_drops.png", "powerup_increase_bomb_range.png", "powerup_increase_speed.png", "powerup_decrease_speed.png"];
 
+//other
+var numberOfGrass = 0;
+var switchCount = 0;
+var moveChooser = 0;
+
+var timer;
+var s = 40;
+var timesUp = false;
+var Score;
+var score = 0;
+
+var gameOver = false;
+console.log("BEGIN NOW");
 Bomberman.SinglePlayerGame.prototype = {
 
   create: function() {  	
-
+console.log("CREATE");
   		//set up the keyboard
   		keyboard.cursors = this.game.input.keyboard.createCursorKeys();
   		keyboard.spaceBar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -58,25 +86,58 @@ Bomberman.SinglePlayerGame.prototype = {
   		//generate map
 		this.generateMap();
 
-		//run the background music
+
+		 var startTime = function() {
+		    if (!gameOver && s > -1)
+		    {
+		    	timer.text = ("Timer: " + s);
+		    	s--;
+		    	var t = setTimeout(function(){startTime()},1000);
+		    }
+		    else if (gameOver && s > -1 && player1.alive)
+		    {
+		    	score++;
+		    	timer.text = ("Timer: " + s);
+		    	s--;
+		    	Score.text = ("Score: " + score);
+		    	var t = setTimeout(function(){startTime()},100);
+		    }
+		    else
+		    {
+		    	timesUp = true;
+		    }
+		}
+
 		var audio = new Audio('Client/assets/music/Bomberman Theme.mp3');
 		audio.play();
-  },
 
+		startTime();
+  },
   generateMap: function() {
 
 		//create map as a bidimensional array
 
 		//map.width = 23; //3 + 2*n
-		map.width = this.game.rnd.integerInRange(2, 4) * 2  + 3;
+		map.width = this.game.rnd.integerInRange(2, 2) * 2  + 3;
 		//map.height = 19;
-		map.height = this.game.rnd.integerInRange(2, 4) * 2  + 3;
+		map.height = this.game.rnd.integerInRange(2, 2) * 2  + 3;
 
 		map.offsetX = 100;
 		map.offsetY = 50;
 		map.terrainBlockSize = 35;
 		map.playerBlockSize = 20;
 		map.board = Utils.create_2D_array(map.width,map.height);
+
+		timer = this.game.add.text(100, 0, "Timer: " + s);
+		timer.font = "Carter One";
+		timer.fill = "red";
+		timer.fontSize = 30;
+
+		Score = this.game.add.text(250, 0, "Score: " + score);
+		Score.font = "Carter One";
+		Score.fill = "blue";
+		Score.fontSize = 30;
+
 
 		/////////////////////////////
 		/////  CREATING PLAYER 1 ////
@@ -192,11 +253,8 @@ Bomberman.SinglePlayerGame.prototype = {
 					rockBlock.body.immovable = true;
 					map.board[i][j].terrain = TerrainType.ROCK;
 
-				} else if(!Utils.isInRangeOfSomePlayer(x,y,map.initialBombRange) &&
-					(i != map.width-2 || j != map.height-2) &&
-					(i != map.width-3 || j != map.height-2) &&
-					(i != map.width-2 || j != map.height-3)) {
-						
+				} else if(!Utils.isInRangeOfSomePlayer(x,y,map.initialBombRange, players, map)) {
+					numberOfGrass++;
 					grassBlock = map.grassBlocks.create(x,y,'global_spritesheet');
 					grassBlock.frameName = 'Grass.png';
 					grassBlock.anchor.x = 0.5;
@@ -213,36 +271,36 @@ Bomberman.SinglePlayerGame.prototype = {
 		}
 
 		/////////////////////////////
-		/////  CREATING PLAYER 2 ////
+		/////  CREATING ENEMY 1 ////
 		/////////////////////////////
 
 		//computing initial coordinates
-		enemy.x = -map.offsetX-5 + (map.width + 4)*map.terrainBlockSize;
-		enemy.y = -map.offsetY-5 + (map.height + 1)*map.terrainBlockSize;	
+		enemy1.x = -map.offsetX-5 + (map.width + 4)*map.terrainBlockSize;
+		enemy1.y = map.offsetY+5 + map.terrainBlockSize*Math.floor((Math.random() * (map.height-2)) + 1);
 
 		//creating the sprite
-		enemy.sprite = this.game.add.sprite(enemy.x,enemy.y, 'Pass_Bear_spritesheet');	
+		enemy1.sprite = this.game.add.sprite(enemy1.x,enemy1.y, 'Pass_Bear_spritesheet');	
 
 		//movement animations
-		enemy.sprite.animations.add('down',[
+		enemy1.sprite.animations.add('down',[
 			'pass_bear_right1.png',
 			'pass_bear_right2.png',
 			'pass_bear_right3.png',
 			'pass_bear_right4.png',
 			],8,true);
-		enemy.sprite.animations.add('up',[
+		enemy1.sprite.animations.add('up',[
 			'pass_bear_left1.png',
 			'pass_bear_left2.png',
 			'pass_bear_left3.png',
 			'pass_bear_left4.png',
 			],8,true);
-		enemy.sprite.animations.add('right',[
+		enemy1.sprite.animations.add('right',[
 			'pass_bear_right1.png',
 			'pass_bear_right2.png',
 			'pass_bear_right3.png',
 			'pass_bear_right4.png',
 			],8,true);
-		enemy.sprite.animations.add('left',[
+		enemy1.sprite.animations.add('left',[
 			'pass_bear_left1.png',
 			'pass_bear_left2.png',
 			'pass_bear_left3.png',
@@ -250,37 +308,106 @@ Bomberman.SinglePlayerGame.prototype = {
 			],8,true);
 
 		//storing the default standing position frame 
-		enemy.standingFrame = 'pass_bear_right1.png';
+		enemy1.standingFrame = 'pass_bear_right1.png';
 
-		enemy.standingLeft = 'pass_bear_left1.png';
-		enemy.standingRight = 'pass_bear_right1.png';
-		enemy.standingUp = 'pass_bear_left1.png';
-		enemy.standingDown = 'pass_bear_right1.png';
+		enemy1.standingLeft = 'pass_bear_left1.png';
+		enemy1.standingRight = 'pass_bear_right1.png';
+		enemy1.standingUp = 'pass_bear_left1.png';
+		enemy1.standingDown = 'pass_bear_right1.png';
 
-		enemy.sprite.frameName = enemy.standingFrame;
+		enemy1.sprite.frameName = enemy1.standingFrame;
 
-		var frame = this.game.cache.getFrameData("Pass_Bear_spritesheet").getFrameByName(enemy.sprite.frameName);
+		var frame = this.game.cache.getFrameData("Pass_Bear_spritesheet").getFrameByName(enemy1.sprite.frameName);
 
-		enemy.frameWidth = frame.width;
-		enemy.frameHeight = frame.height;
+		enemy1.frameWidth = frame.width;
+		enemy1.frameHeight = frame.height;
 
-		enemy.sprite.anchor.x = 0.5;
-		enemy.sprite.anchor.y = 0.5;
-		enemy.sprite.scale.set( (map.playerBlockSize / enemy.frameWidth)*1.5,
-										  (map.playerBlockSize / enemy.frameHeight)*1.5);
+		enemy1.sprite.anchor.x = 0.5;
+		enemy1.sprite.anchor.y = 0.5;
+		enemy1.sprite.scale.set( (map.playerBlockSize / enemy1.frameWidth)*1.5,
+										  (map.playerBlockSize / enemy1.frameHeight)*1.5);
 		//enabling physics		
-		this.game.physics.arcade.enable(enemy.sprite);
+		this.game.physics.arcade.enable(enemy1.sprite);
 
+		/////////////////////////////
+		/////  CREATING ENEMY 2 ////
+		/////////////////////////////
+
+		//computing initial coordinates
+		enemy2.x = map.offsetX + map.terrainBlockSize * Math.floor((Math.random() * (map.width-2)) + 1);
+		enemy2.y = -map.offsetY-5 + (map.height + 1)*map.terrainBlockSize;	
+
+		//creating the sprite
+		enemy2.sprite = this.game.add.sprite(enemy2.x,enemy2.y, 'Doria_Ghost_spritesheet');	
+
+		//movement animations
+		enemy2.sprite.animations.add('down',[
+			'doria_ghost_right1.png',
+			'doria_ghost_right2.png',
+			'doria_ghost_right3.png',
+			'doria_ghost_right4.png',
+			],8,true);
+		enemy2.sprite.animations.add('up',[
+			'doria_ghost_left1.png',
+			'doria_ghost_left2.png',
+			'doria_ghost_left3.png',
+			'doria_ghost_left4.png',
+			],8,true);
+		enemy2.sprite.animations.add('right',[
+			'doria_ghost_right1.png',
+			'doria_ghost_right2.png',
+			'doria_ghost_right3.png',
+			'doria_ghost_right4.png',
+			],8,true);
+		enemy2.sprite.animations.add('left',[
+			'doria_ghost_left1.png',
+			'doria_ghost_left2.png',
+			'doria_ghost_left3.png',
+			'doria_ghost_left4.png',
+			],8,true);
+
+		//storing the default standing position frame 
+		enemy2.standingFrame = 'doria_ghost_right1.png';
+
+		enemy2.standingLeft = 'doria_ghost_left1.png';
+		enemy2.standingRight = 'doria_ghost_right1.png';
+		enemy2.standingUp = 'doria_ghost_left1.png';
+		enemy2.standingDown = 'doria_ghost_right1.png';
+
+		enemy2.sprite.frameName = enemy2.standingFrame;
+
+		var frame = this.game.cache.getFrameData("Doria_Ghost_spritesheet").getFrameByName(enemy2.sprite.frameName);
+
+		enemy2.frameWidth = frame.width;
+		enemy2.frameHeight = frame.height;
+
+		enemy2.sprite.anchor.x = 0.5;
+		enemy2.sprite.anchor.y = 0.5;
+		enemy2.sprite.scale.set( (map.playerBlockSize / enemy2.frameWidth)*1.5,
+										  (map.playerBlockSize / enemy2.frameHeight)*1.5);
+		//enabling physics		
+		this.game.physics.arcade.enable(enemy2.sprite);
 	},
 
 	update: function() {
+
+		if (timesUp && !gameOver)
+		{
+			alert("TIME'S UP!!!!");
+			this.game.add.sprite(0,28, 'you_lose');
+			var audio = new Audio('Client/assets/music/HURRYUP.wav');
+			audio.play();
+			timesUp = false;
+			gameOver = true;
+
+		}
 
 		//check player collisions
 
 		for(var i = 0; i < players.length; ++i) {
 
 			if(players[i].destroyMe) {
-
+				this.game.add.sprite(0, 28, 'you_lose');
 				players[i].alive = false;
 				players[i].sprite.destroy();
 				Utils.removeElementFromArray(players[i], players);
@@ -288,25 +415,36 @@ Bomberman.SinglePlayerGame.prototype = {
 				--i;
 				var audio = new Audio('Client/assets/music/PLAYER_OUT.wav');
 				audio.play();
+				gameOver = true;
 
-			} else {
-
-				this.game.physics.arcade.collide(players[i].sprite, map.rockBlocks);
-				this.game.physics.arcade.collide(players[i].sprite, map.grassBlocks);
-				this.game.physics.arcade.collide(players[i].sprite, map.bombs);		
-				this.game.physics.arcade.overlap(players[i].sprite, map.powerups, this.handlePowerUps, null, players[i]);
-				this.game.physics.arcade.overlap(players[i].sprite, map.explosions, this.destroyPlayer, null, players[i]);
-				this.game.physics.arcade.overlap(players[i].sprite, map.enemies, this.destroyPlayer, null, players[i]);	
+			} else if (!gameOver){
+				if (players[i].blockCoords.x == door.blockCoords.x && players[i].blockCoords.y == door.blockCoords.y && !enter && enemies.length == 0)
+				{
+					var audio = new Audio('Client/assets/music/P1UP.wav');
+					audio.play();
+					enter = true;
+					this.game.add.sprite(0,28, 'you_win');
+					gameOver = true;
+					players[i].alive = false;
+					players[i].sprite.destroy();
+				} else {
+					this.game.physics.arcade.collide(players[i].sprite, map.rockBlocks);
+					this.game.physics.arcade.collide(players[i].sprite, map.grassBlocks);
+					this.game.physics.arcade.collide(players[i].sprite, map.bombs);		
+					this.game.physics.arcade.overlap(players[i].sprite, map.powerups, this.handlePowerUps, null, players[i]);
+					this.game.physics.arcade.overlap(players[i].sprite, map.explosions, this.destroyPlayer, null, players[i]);
+					this.game.physics.arcade.overlap(players[i].sprite, map.enemies, this.destroyPlayer, null, players[i]);	
+				}	
 			}
 		}
+
 		for(var i = 0; i < enemies.length; ++i) {
 			if(enemies[i].destroyMe) {
-
+				score++;
+				Score.text = ("Score: " + score);
 				enemies[i].alive = false;
 				enemies[i].sprite.destroy();
 				Utils.removeElementFromArray(enemies[i], enemies);
-
-				--i;
 				var audio = new Audio('Client/assets/music/PAUSE.wav');
 				audio.play();
 
@@ -314,23 +452,17 @@ Bomberman.SinglePlayerGame.prototype = {
 				this.game.physics.arcade.collide(enemies[i].sprite, map.rockBlocks);
 				//this.game.physics.arcade.collide(enemies[i].sprite, map.grassBlocks);
 				this.game.physics.arcade.collide(enemies[i].sprite, map.bombs);		
-				this.game.physics.arcade.overlap(enemies[i].sprite, map.powerups, this.handlePowerUps, null, enemies[i]);
+				//this.game.physics.arcade.overlap(enemies[i].sprite, map.powerups, this.handlePowerUps, null, enemies[i]);
 				this.game.physics.arcade.overlap(enemies[i].sprite, map.explosions, this.destroyPlayer, null, enemies[i]);	
 			}
 
 		}
 
-		//update players' block coordinates
+		//which block is player1 standing in right now?
 		for(var i = 0; i < players.length; ++i)
 		{
 			players[i].updateBlockCoordinates();
 		}
-
-		//update enemies' block coordinates
-		for(var i = 0; i < enemies.length; ++i) {
-			enemies[i].updateBlockCoordinates();
-		}
-
 
 		//handle player movement and related animations
 		if(player1.alive) {
@@ -370,83 +502,171 @@ Bomberman.SinglePlayerGame.prototype = {
 			} 
 		}
 
-		if(enemy.alive && enemies.length != 0)
+		if(enemy1.alive)
 		{
-			enemy.sprite.body.velocity.x = 0;
-			enemy.sprite.body.velocity.y = 0;
+			enemy1.sprite.body.velocity.x = 0;
+			enemy1.sprite.body.velocity.y = 0;
 
-			var moveChooser = Math.floor((Math.random() * 4) + 1);
+			moveChooser = Math.floor((Math.random() * 4) + 1);
 
 			if (moveChooser == 1)
 			{
 				setTimeout(function(){
-					if(enemy.alive) {
-						enemy.sprite.body.velocity.x = -enemy.vel;
-						enemy.standingFrame = enemy.standingLeft ;
-						enemy.sprite.animations.play('left');
+					if(enemy1.alive)
+					{
+						enemy1.sprite.body.velocity.x = -enemy1.vel;
+						enemy1.standingFrame = enemy1.standingLeft ;
+						enemy1.sprite.animations.play('left');
 						direction = 1;
 					}
-				}, enemyWalkCounter)
+				}, enemy1WalkCounter)
 			}
 			else if (moveChooser == 2)
 			{
 				setTimeout(function(){
-					if(enemy.alive) {
-						enemy.sprite.body.velocity.x = enemy.vel;
-						enemy.standingFrame =enemy.standingRight;
-						enemy.sprite.animations.play('right');
+					if (enemy1.alive)
+					{
+						enemy1.sprite.body.velocity.x = enemy1.vel;
+						enemy1.standingFrame =enemy1.standingRight;
+						enemy1.sprite.animations.play('right');
 						direction = 2;
 					}
-				}, enemyWalkCounter)
+				}, enemy1WalkCounter)
 			}
 			else if (moveChooser == 3)
 			{
 				setTimeout(function(){
-					if(enemy.alive) {
-						enemy.sprite.body.velocity.y = -enemy.vel;
-						enemy.standingFrame = enemy.standingUp;
-						enemy.sprite.animations.play('up');	
+					if (enemy1.alive)
+					{
+						enemy1.sprite.body.velocity.y = -enemy1.vel;
+						enemy1.standingFrame = enemy1.standingUp;
+						enemy1.sprite.animations.play('up');	
 						direction = 3;
 					}
-				}, enemyWalkCounter)
+				}, enemy1WalkCounter)
 			}
 			else if (moveChooser == 4)
 			{
 				setTimeout(function(){
-					if(enemy.alive) {
-						enemy.sprite.body.velocity.y = enemy.vel;
-						enemy.standingFrame = enemy.standingDown;
-						enemy.sprite.animations.play('down');
-						direction = 4;
+					if (enemy1.alive)
+					{
+					enemy1.sprite.body.velocity.y = enemy1.vel;
+					enemy1.standingFrame = enemy1.standingDown;
+					enemy1.sprite.animations.play('down');
+					direction = 4;
 					}
-				}, enemyWalkCounter)
+				}, enemy1WalkCounter)
 			}
 
-			enemyWalkCounter += 560;
+			enemy1WalkCounter += 560;
 
 			if (direction == 1)
 			{
-					enemy.sprite.body.velocity.x = -enemy.vel;
-					enemy.standingFrame = enemy.standingLeft ;
-					enemy.sprite.animations.play('left');
+					enemy1.sprite.body.velocity.x = -enemy1.vel;
+					enemy1.standingFrame = enemy1.standingLeft ;
+					enemy1.sprite.animations.play('left');
 			}
 			else if (direction == 2)
 			{
-					enemy.sprite.body.velocity.x = enemy.vel;
-					enemy.standingFrame =enemy.standingRight;
-					enemy.sprite.animations.play('right');
+					enemy1.sprite.body.velocity.x = enemy1.vel;
+					enemy1.standingFrame =enemy1.standingRight;
+					enemy1.sprite.animations.play('right');
 			}
 			else if (direction == 3)
 			{
-					enemy.sprite.body.velocity.y = -enemy.vel;
-					enemy.standingFrame = enemy.standingUp;
-					enemy.sprite.animations.play('up');	
+					enemy1.sprite.body.velocity.y = -enemy1.vel;
+					enemy1.standingFrame = enemy1.standingUp;
+					enemy1.sprite.animations.play('up');	
 			}
 			else if (direction == 4)
 			{
-					enemy.sprite.body.velocity.y = enemy.vel;
-					enemy.standingFrame = enemy.standingDown;
-					enemy.sprite.animations.play('down');
+					enemy1.sprite.body.velocity.y = enemy1.vel;
+					enemy1.standingFrame = enemy1.standingDown;
+					enemy1.sprite.animations.play('down');
+			}		
+		}
+
+		if(enemy2.alive)
+		{
+			enemy2.sprite.body.velocity.x = 0;
+			enemy2.sprite.body.velocity.y = 0;
+
+			moveChooser = Math.floor((Math.random() * 9) + 6);
+
+			if (moveChooser == 9)
+			{
+				setTimeout(function(){
+					if (enemy2.alive)
+					{
+						enemy2.sprite.body.velocity.x = -enemy2.vel;
+						enemy2.standingFrame = enemy2.standingLeft ;
+						enemy2.sprite.animations.play('left');
+						direction = 1;
+					}
+				}, enemy2WalkCounter)
+			}
+			else if (moveChooser == 8)
+			{
+				setTimeout(function(){
+					if (enemy2.alive)
+					{
+						enemy2.sprite.body.velocity.x = enemy2.vel;
+						enemy2.standingFrame =enemy2.standingRight;
+						enemy2.sprite.animations.play('right');
+						direction = 2;
+					}
+				}, enemy2WalkCounter)
+			}
+			else if (moveChooser == 7)
+			{
+				setTimeout(function(){
+					if (enemy2.alive)
+					{
+						enemy2.sprite.body.velocity.y = -enemy2.vel;
+						enemy2.standingFrame = enemy2.standingUp;
+						enemy2.sprite.animations.play('up');	
+						direction = 3;
+					}
+				}, enemy2WalkCounter)
+			}
+			else if (moveChooser == 6)
+			{
+				setTimeout(function(){
+					if (enemy2.alive)
+					{
+						enemy2.sprite.body.velocity.y = enemy2.vel;
+						enemy2.standingFrame = enemy2.standingDown;
+						enemy2.sprite.animations.play('down');
+						direction = 4;
+					}
+				}, enemy2WalkCounter)
+			}
+
+			enemy2WalkCounter += 560;
+
+			if (direction == 1)
+			{
+					enemy2.sprite.body.velocity.x = -enemy2.vel;
+					enemy2.standingFrame = enemy2.standingLeft ;
+					enemy2.sprite.animations.play('left');
+			}
+			else if (direction == 2)
+			{
+					enemy2.sprite.body.velocity.x = enemy2.vel;
+					enemy2.standingFrame =enemy2.standingRight;
+					enemy2.sprite.animations.play('right');
+			}
+			else if (direction == 3)
+			{
+					enemy2.sprite.body.velocity.y = -enemy2.vel;
+					enemy2.standingFrame = enemy2.standingUp;
+					enemy2.sprite.animations.play('up');	
+			}
+			else if (direction == 4)
+			{
+					enemy2.sprite.body.velocity.y = enemy2.vel;
+					enemy2.standingFrame = enemy2.standingDown;
+					enemy2.sprite.animations.play('down');
 			}		
 		}
 	},
@@ -455,7 +675,8 @@ Bomberman.SinglePlayerGame.prototype = {
 	{
 		var bx = this.blockCoords.x;
 		var by = this.blockCoords.y;
-
+		//console.log(bx);
+		//console.log(by);
 		if (map.board[bx][by].hasPowerUp)
 		{
 			var audio = new Audio('Client/assets/music/ITEM_GET.wav');
@@ -652,9 +873,9 @@ Bomberman.SinglePlayerGame.prototype = {
 			//destroy the grass block
 			cell.grassBlock.destroy();
 			cell.terrain = TerrainType.EMPTY;
-
+			numberOfGrass--;
 			var randomValue = Math.floor(Math.random()*10);
-			if (randomValue == 0)
+			if (randomValue == 0 && switchCount == 0 && numberOfGrass != 0)
 			{
 				var wcoords = Utils.blockCoords2WorldCoords(bx, by);
 				var powerup = map.powerups.create(wcoords.x, wcoords.y, "global_spritesheet");
@@ -667,8 +888,55 @@ Bomberman.SinglePlayerGame.prototype = {
 				var dim = Utils.getFrameDimensions(randomPowerUp, this.game.cache);
 				var scaleX = map.terrainBlockSize / dim.width;
 				var scaleY = map.terrainBlockSize / dim.height;
-				powerup.scale.set(scaleX,scaleY);	
+				powerup.scale.set(scaleX,scaleY);
+				switchCount = 1;	
 			}
+
+			var randomValue2 = Math.floor(Math.random()*10);
+			if (((randomValue2 == 0 && doorCount == 0) || (numberOfGrass == 0 && doorCount == 0)) && switchCount == 0)
+			{
+				door.blockCoords.x = bx;
+				door.blockCoords.y = by;
+
+				var wcoords = Utils.blockCoords2WorldCoords(bx, by);
+				/////////////////////
+				// CREATING A DOOR //
+				/////////////////////
+
+				//computing initial coordinates
+				door.x = wcoords.x;
+				door.y = wcoords.y;
+
+				//creating the sprite
+				door.sprite = this.game.add.sprite(door.x,door.y, 'Door_spritesheet');	
+
+				//movement animations
+				door.sprite.animations.add('move',[
+					'door1.png',
+					'door2.png',
+					'door3.png',
+					'door4.png',
+					],8,true);
+
+				door.sprite.frameName = 'door1.png';
+
+				var frame = this.game.cache.getFrameData("Door_spritesheet").getFrameByName(door.sprite.frameName);
+
+				door.frameWidth = frame.width;
+				door.frameHeight = frame.height;
+
+				door.sprite.anchor.x = 0.5;
+				door.sprite.anchor.y = 0.5;
+				door.sprite.scale.set( (map.playerBlockSize / door.frameWidth)*1.5,
+												  (map.playerBlockSize / door.frameHeight)*1.5);
+				//enabling physics		
+				this.game.physics.arcade.enable(door.sprite);
+
+				doorCount = 1;
+
+				door.sprite.animations.play('move');
+			}
+			switchCount = 0;
 
 			output = false;
 
