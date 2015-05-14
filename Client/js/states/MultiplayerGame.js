@@ -261,12 +261,41 @@ Bomberman.MultiplayerGame.prototype = {
 
 				if(playerData.playerNum == mpg.myPlayerNumber) continue; //skip updates for our own player
 
-				mpg.players[playerData.playerNum].sprite.x = playerData.x;
-				mpg.players[playerData.playerNum].sprite.y = playerData.y;
-				mpg.players[playerData.playerNum].sprite.body.velocity.x = playerData.velX;
-				mpg.players[playerData.playerNum].sprite.body.velocity.y = playerData.velY;
-				mpg.players[playerData.playerNum].orientation = playerData.orientation;
+				var player = mpg.players[playerData.playerNum];
 
+				player.sprite.x = playerData.x;
+				player.sprite.y = playerData.y;
+				player.sprite.body.velocity.x = playerData.velX;
+				player.sprite.body.velocity.y = playerData.velY;
+				player.orientation = playerData.orientation;
+
+				if (player.sprite.body.velocity.x != 0 || player.sprite.body.velocity.y != 0)
+				{
+					switch(playerData.orientation)
+					{
+						case "left": 
+							player.sprite.animations.play('left');
+							player.standingFrame = player.standingLeft ;
+							break;
+						case "right":
+							player.sprite.animations.play('right');
+							player.standingFrame = player.standingRight ;
+							break;
+						case "up":
+							player.sprite.animations.play('up');
+							player.standingFrame = player.standingUp ;
+							break;
+						case "down": 
+							player.sprite.animations.play('down');
+							player.standingFrame = player.standingDown ;
+							break;
+					}
+				}
+				else
+				{
+					player.sprite.animations.stop();
+					player.sprite.frameName = player.standingFrame;
+				}
 			}
 		}		
 
