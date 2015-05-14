@@ -46,6 +46,12 @@ Bomberman.MultiplayerMenu.prototype = {
 				overFrame: "button_game_slot_gray.png",
 				text: "Game Full ",
 				callback: null
+			},
+			running: {
+				outFrame: "button_game_slot_gray.png",
+				overFrame: "button_game_slot_gray.png",
+				text: "Running",
+				callback: null
 			}
 		};
 
@@ -106,25 +112,10 @@ Bomberman.MultiplayerMenu.prototype = {
 
 		var self = this;
 
-		socket.on('new user joined a game', function(data) {			
+		socket.on('game state changed', function(data) {			
 
 			console.log('-------------------------------');
-			console.log('==> On "new user joined a game" event');
-			console.log('the data received is:');
-			console.log(data);
-
-			var game_slot = self.game_slots[data.game_id];
-			game_slot.state = data.state;
-			game_slot.num_players = data.num_players;
-
-			self.updateGameSlot(game_slot);
-
-		});
-
-		socket.on('some user left a game', function(data) {			
-
-			console.log('-------------------------------');
-			console.log('==> On "some user left a game" event');
+			console.log('==> On "game state changed" event');
 			console.log('the data received is:');
 			console.log(data);
 

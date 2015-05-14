@@ -3,6 +3,9 @@ var PendingGame = require('./pending_game.js');
 var GameHandle = require('./game_handle.js');
 var Client = require('./client.js');
 var Utils = require('./Utils.js');
+var GameLoop = require('node-gameloop');
+ 
+
 
 
 function server(io, UUID) {
@@ -12,6 +15,8 @@ function server(io, UUID) {
 	var pending_games = [];
 	var gameHandles = {};
 	var clients = {};
+
+	var frameRate = 30; //frames per second
 
 	//Terrain Enum
 	var TerrainType = Object.freeze({
@@ -37,7 +42,7 @@ function server(io, UUID) {
 		client.socket.on('leaving lobby', handle_leavingLobbyEvent.bind(client));
 		client.socket.on('I want to start the game', handle_wantStartGame.bind(client));
 		client.socket.on('disconnect', handle_disconnect.bind(client));
-		//client.socket.on('my coordinates', handle_coordinatesReceived.bind(client));
+		client.socket.on('my coordinates and such', handle_coordinatesReceived.bind(client));
 	});
 
 	//the client is requeting the game list because he/she is entering the 
@@ -180,7 +185,7 @@ function server(io, UUID) {
 		}
 
 		//notify followers that new user has joined this game
-		game_handle.notifyFollowersNewUserJoined();
+		game_handle.notifyFollowersGameStateChanged();
 
 		//notify client that he can start to host the game
 		var data = {
@@ -234,7 +239,7 @@ function server(io, UUID) {
 		}
 
 		//notify followers that new user has joined this game
-		game_handle.notifyFollowersNewUserJoined();
+		game_handle.notifyFollowersGameStateChanged();
 
 		//notify client that he can join the game
 		var playerIndices = [];
@@ -284,7 +289,7 @@ function server(io, UUID) {
 		game_handle.state = (num_players == 0) ? "empty" : "joinable";
 		
 		//notify followers that new user has left this game
-		game_handle.notifyFollowerSomeUserLeft();
+		game_handle.notifyFollowersGameStateChanged();
 
 		//notify other players in the pending game's lobby that this player
 		//has left the game
@@ -304,11 +309,16 @@ function server(io, UUID) {
 
 		
 		var game_handle = gameHandles[data.game_id];
+
+		//check that the number of players is in fact at least 2
 		if(game_handle.pending_game.getNumPlayers() < 2)
 			return;
 
-		console.log("debug #1");
+		//set the state of the game to "running"
+		game_handle.state = "running";
 
+
+		//object to wrap the data to send to the clients
 		var data = {};
 
 		var game = game_handle.game;
@@ -321,13 +331,12 @@ function server(io, UUID) {
 			game.players[i] = game_handle.pending_game.players[i];
 		}
 
-		console.log("debug #2");
 
 		//==============================
 		// generate map randomly
 		//==============================
 
-		//map.width = 23; //3 + 2*n
+		//map.width = 3 + 2*n
 		var width = (Math.floor(Math.random() * 5) + 2) * 2 + 3
 		var height = (Math.floor(Math.random() * 5) + 6) * 2 + 3
 		game.createBoard(width,height);
@@ -336,8 +345,6 @@ function server(io, UUID) {
 		map.height = height;
 
 		var grassblocks = [];
-
-		console.log("debug #3");
 
 		for(var i = 0; i < map.width; ++i) {
 			for(var j = 0; j <  map.height; ++j) {
@@ -360,8 +367,6 @@ function server(io, UUID) {
 			}
 		}
 
-		console.log("debug #4");
-
 		//choose block of grass where we are going to place the door randomly
 		var chosenGrassBlock  = grassblocks[Math.floor(Math.random()*grassblocks.length)];
 		data.doorCoordinates = {x: chosenGrassBlock.x, y: chosenGrassBlock.y};
@@ -370,15 +375,28 @@ function server(io, UUID) {
 		data.mapWidth = width;
 		data.mapHeight = height;
 
+		//==================================
+		// notify stuff to guys
+		//==================================
+
 		//tell all the players in the game that they can start the game
-		//and send map data
+		//and send them the map data
 		for(var i = 0; i < 4; ++i) {
 			if(game.players[i] == null)
 				continue;
 			game.players[i].socket.emit('feel free to start the game', data);
+			game.players[i].state = "MultiplayerGame";
+			game.players[i].hasReceivedData = false;
 		}
 
-		console.log("debug #5");
+		//notify the clients following the state of this game in the MultiplayerMenu
+		//that the game is running now
+		game_handle.notifyFollowersGameStateChanged();
+
+		//start the game loop for this game
+		game_handle.game.gameloopID = 
+			GameLoop.setGameLoop(broadcastCoordinates.bind(game_handle.game), 1000 / frameRate );
+
 	};
 
 	function handle_disconnect() {
@@ -395,14 +413,70 @@ function server(io, UUID) {
 				spotNumber: client.playerNumber} );
 		}
 	};
-
-	/*
+	
+	//we receive the coords, vel and orientation from the client
 	function handle_coordinatesReceived(data) {
 		var client = this;
-		var game_handle = game_handles[client.game_id];
+
+		//if((framecount % 100) < 3) 
+		//console.log("receiving data from the client "+ client.user_id);
+		//console.log(data);
+
+		client.character.worldX = data.x;
+		client.character.worldY = data.y;
+		client.character.velX = data.velX;
+		client.character.velY = data.velY;
+		client.character.orientation = data.orientation;
+		client.hasReceivedData = true;
 
 	}
-	*/
+
+	//this function is called every time in the game loop to
+	//broadcast the coordinates from all to all
+	//var framecount = 0;
+	function broadcastCoordinates() {
+
+		//console.log("from gameloop: framecount = "+ framecount++);
+
+		var game = this;	
+		var client;
+
+		//collect all the coordinates and other physical variables into a single package
+		var data = [];
+		for(var i = 0; i < 4; ++i) {
+
+			client = game.players[i];
+			if(client == null  || client.hasReceivedData == false) continue;			
+
+			client.hasReceivedData = false;
+
+			data.push(
+				{	
+					playerNum: i, 
+					x: client.character.worldX,
+					y: client.character.worldY,
+					velX: client.character.velX,
+					velY: client.character.velY,
+					orientation: client.character.orientation
+				});
+		}
+
+		//console.log("broadcasting the following data");
+		//console.log(data);
+
+		//broadcast data to all the players in the game now
+		if(data.length > 0) {
+
+			for(var i = 0; i < 4; ++i) {
+				client = game.players[i];
+				if(client == null) continue;			
+
+				client.socket.emit('receive game loop update data', data);
+			}			
+		}
+
+	}
+	
 
 };
 

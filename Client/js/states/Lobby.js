@@ -175,6 +175,7 @@ Bomberman.Lobby.prototype = {
 		this.youAreHostMessage.visible = IamHost;
 		this.startGameButton.visible = IamHost;
 		this.minPlayersMessage.visible = IamHost;
+		this.checkIfCanStartGame();
 	},
 
 	checkIfCanStartGame: function() {
@@ -219,20 +220,31 @@ Bomberman.Lobby.prototype = {
 		socket.emit('I want to start the game', {game_id: gameID});
 	},
 
+
+	//we read from data and initialize some variables that are going to be used
+	//in the MultiplayerGame state
 	runGame: function(data) {
+
+		//mpg stands for multi player game, it is used as sort of namespace
+		//for variables we will be using in the MultiplayerGame state
 
 		mpg.doorCoordinates = data.doorCoordinates;
 		mpg.map.width = data.mapWidth;
 		mpg.map.height = data.mapHeight;
+
+		//initialize players
 		mpg.players = [null,null,null,null];		
 		for(var i = 0; i < 4; ++i) {
 			if(this.characterHeads[i].visible) {
 				mpg.players[i] = new Player();
 			}
 		}
+
+		//we remember who we are
 		mpg.myPlayerNumber = playerNumber;
 		mpg.myPlayer = mpg.players[playerNumber];
 
+		//remove listeners
 		socket.removeAllListeners();	
 
 		//switch to the MultiplayerGame state

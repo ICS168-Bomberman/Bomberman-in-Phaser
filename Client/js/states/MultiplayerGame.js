@@ -8,39 +8,45 @@ var mpg = {
 	map: {
 		initialBombRange: 1
 	},
-	enqueuedCoords: new Queue(),
+	updateDataQueue: new Queue(),
 	defaultVelocity: 130,
 	sendInterval: 10 //in milliseconds
 };
 
+//information (mainly about sprites) for the 4 players in the game defined clockwise
+//starting from the upper left corner
 var characterSprites = [
 	{
 		up0: "blue_bomberman_up0.png", up1: "blue_bomberman_up1.png", up2: "blue_bomberman_up2.png",
 		down0: "blue_bomberman_down0.png", down1: "blue_bomberman_down1.png", down2: "blue_bomberman_down2.png",
 		right0: "blue_bomberman_right0.png", right1: "blue_bomberman_right1.png", right2: "blue_bomberman_right2.png",
 		left0: "blue_bomberman_left0.png", left1: "blue_bomberman_left1.png", left2: "blue_bomberman_left2.png",
-		initialStandingFrame: "blue_bomberman_right0.png"
+		initialStandingFrame: "blue_bomberman_right0.png",
+		initialOrientation: "right"
 	},
 	{
 		up0: "black_bomberman_up0.png", up1: "black_bomberman_up1.png", up2: "black_bomberman_up2.png",
 		down0: "black_bomberman_down0.png", down1: "black_bomberman_down1.png", down2: "black_bomberman_down2.png",
 		right0: "black_bomberman_right0.png", right1: "black_bomberman_right1.png", right2: "black_bomberman_right2.png",
 		left0: "black_bomberman_left0.png", left1: "black_bomberman_left1.png", left2: "black_bomberman_left2.png",
-		initialStandingFrame: "black_bomberman_left0.png"
+		initialStandingFrame: "black_bomberman_left0.png",
+		initialOrientation: "left"
 	},
 	{
 		up0: "red_bomberman_up0.png", up1: "red_bomberman_up1.png", up2: "red_bomberman_up2.png",
 		down0: "red_bomberman_down0.png", down1: "red_bomberman_down1.png", down2: "red_bomberman_down2.png",
 		right0: "red_bomberman_right0.png", right1: "red_bomberman_right1.png", right2: "red_bomberman_right2.png",
 		left0: "red_bomberman_left0.png", left1: "red_bomberman_left1.png", left2: "red_bomberman_left2.png",
-		initialStandingFrame: "red_bomberman_left0.png"
+		initialStandingFrame: "red_bomberman_left0.png",
+		initialOrientation: "left"
 	},
 	{
 		up0: "white_bomberman_up0.png", up1: "white_bomberman_up1.png", up2: "white_bomberman_up2.png",
 		down0: "white_bomberman_down0.png", down1: "white_bomberman_down1.png", down2: "white_bomberman_down2.png",
 		right0: "white_bomberman_right0.png", right1: "white_bomberman_right1.png", right2: "white_bomberman_right2.png",
 		left0: "white_bomberman_left0.png", left1: "white_bomberman_left1.png", left2: "white_bomberman_left2.png",
-		initialStandingFrame: "white_bomberman_right0.png"
+		initialStandingFrame: "white_bomberman_right0.png",
+		initialOrientation: "right"
 	}
 ];
 
@@ -56,7 +62,7 @@ Bomberman.MultiplayerGame.prototype = {
 		this.generateMap();
 
 		//register callbacks fucntions in the socket
-		//socket.on('receive coordinates', this.enqueueCoordinates);
+		socket.on('receive game loop update data', this.enqueueUpdateData);		
 
 	},
 
@@ -72,8 +78,8 @@ Bomberman.MultiplayerGame.prototype = {
 		mpg.initialTime = this.game.time.now;
 
 		//clear the coordinates queue
-		while(mpg.enqueuedCoords.length > 0) {
-			mpg.enqueuedCoords.dequeue();
+		while(mpg.updateDataQueue.length > 0) {
+			mpg.updateDataQueue.dequeue();
 		}
 
 
@@ -88,7 +94,10 @@ Bomberman.MultiplayerGame.prototype = {
 			if(player == null)
 				continue;
 
+			///set initial velocity
 			player.vel = mpg.defaultVelocity;
+			//set initial orientation
+			player.orientation = characterSprites[i].initialOrientation;
 
 			//computing initial coordinates
 			if(i == 0) { //upper left
@@ -216,7 +225,7 @@ Bomberman.MultiplayerGame.prototype = {
 					rockBlock.body.immovable = true;
 					mpg.map.board[i][j].terrain = TerrainType.ROCK;
 
-				}/* else if(!Utils.isInRangeOfSomePlayer(x,y, mpg.map.initialBombRange,mpg.players,mpg.map)) {
+				} else if(!Utils.isInRangeOfSomePlayer(x,y, mpg.map.initialBombRange,mpg.players,mpg.map)) {
 
 					grassBlock = mpg.map.grassBlocks.create(x,y,'global_spritesheet');
 					grassBlock.frameName = 'Grass.png';
@@ -227,33 +236,41 @@ Bomberman.MultiplayerGame.prototype = {
 					mpg.map.board[i][j].terrain = TerrainType.GRASS;
 					mpg.map.board[i][j].grassBlock = grassBlock;
 
-				}*/ else {
+				} else {
+
 					mpg.map.board[i][j].terrain = TerrainType.EMPTY;
+
 				}
 			}
 		}	
 	},
 
 
-	update: function() {
-
-		/*
+	update: function() {		
 
 		//check for coordinates updates from the server
-		if(mpg.enqueuedCoords.length > 0) {
-			var data = mpg.enqueuedCoords.dequeue();
-			var coords = data.coords;
-			for(var i = 0; i < coords.length; ++i) {}
-				var coord = coords[i];
-				(coords.playerNum = mpg.myPlayerNumber) continue; //skip updates for our own player
-				mpg.players[coord.playerNum].sprite.x = coord.x;
-				mpg.players[coord.playerNum].sprite.y = coord.y;
+		if (mpg.updateDataQueue.getLength() > 0) {
+			
+			var data = mpg.updateDataQueue.dequeue();
+
+			//console.log("from the update loop: we are dequeueing the following data");
+			//console.log(data);
+
+			for(var i = 0; i < data.length; ++i) {
+				var playerData = data[i];
+
+				if(playerData.playerNum == mpg.myPlayerNumber) continue; //skip updates for our own player
+
+				mpg.players[playerData.playerNum].sprite.x = playerData.x;
+				mpg.players[playerData.playerNum].sprite.y = playerData.y;
+				mpg.players[playerData.playerNum].sprite.body.velocity.x = playerData.velX;
+				mpg.players[playerData.playerNum].sprite.body.velocity.y = playerData.velY;
+				mpg.players[playerData.playerNum].orientation = playerData.orientation;
+
 			}
-		}
-		*/
+		}		
 
 		//check collisions for our player	
-
 		//against rocks
 		this.game.physics.arcade.collide(mpg.myPlayer.sprite, mpg.map.rockBlocks);
 		//against grass
@@ -267,45 +284,55 @@ Bomberman.MultiplayerGame.prototype = {
 			mpg.myPlayer.sprite.body.velocity.x = -mpg.myPlayer.vel;
 			mpg.myPlayer.standingFrame = mpg.myPlayer.standingLeft ;
 			mpg.myPlayer.sprite.animations.play('left');
+			mpg.myPlayer.orientation = "left";
 
 		} else if(mpg.keyboard.cursors.right.isDown) {
 			mpg.myPlayer.sprite.body.velocity.x = mpg.myPlayer.vel;
 			mpg.myPlayer.standingFrame = mpg.myPlayer.standingRight;
 			mpg.myPlayer.sprite.animations.play('right');
+			mpg.myPlayer.orientation = "right";
 
 		} else if(mpg.keyboard.cursors.up.isDown) {
 			mpg.myPlayer.sprite.body.velocity.y = -mpg.myPlayer.vel;
 			mpg.myPlayer.standingFrame = mpg.myPlayer.standingUp;
 			mpg.myPlayer.sprite.animations.play('up');
+			mpg.myPlayer.orientation = "up";
 
 		} else if(mpg.keyboard.cursors.down.isDown) {
 			mpg.myPlayer.sprite.body.velocity.y = mpg.myPlayer.vel;
 			mpg.myPlayer.standingFrame = mpg.myPlayer.standingDown;
 			mpg.myPlayer.sprite.animations.play('down');
+			mpg.myPlayer.orientation = "down";
 
 		} else {
 			mpg.myPlayer.sprite.animations.stop();
 			mpg.myPlayer.sprite.frameName = mpg.myPlayer.standingFrame;
 		}
-
-
-		/*
+		
 		//check if it's time to send our coordinates to the server		
-		if(this.game.time.now() - mpg.initialTime >= mpg.nextSendTime) {
+		if(this.game.time.now - mpg.initialTime >= mpg.nextSendTime) {
 			mpg.nextSendTime += mpg.sendInterval;
-			socket.emit("my coordinates",
-				{
+			var data = {				
 					x: mpg.myPlayer.sprite.x,
-					y: mpg.myPlayer.sprite.y
-				});
+					y: mpg.myPlayer.sprite.y,
+					velX: mpg.myPlayer.sprite.body.velocity.x,
+					velY: mpg.myPlayer.sprite.body.velocity.y,
+					orientation: mpg.myPlayer.orientation
+				};
+			socket.emit("my coordinates and such", data);
+			//console.log("we are sending information to the server");
+			//console.log(data);
 		}
-		*/
-
 		
 	},
 
-	enqueueCoordinates: function(data) {
-		mpg.enqueuedCoords.enqueue(data);
+	enqueueUpdateData: function(data) {
+		//console.log("from enqueueUpdateData: we are receiving following data from the server");
+		//console.log(data);
+
+		mpg.updateDataQueue.enqueue(data);
+		//console.log(mpg.updateDataQueue.getLength());
+
 	}
 
 };
