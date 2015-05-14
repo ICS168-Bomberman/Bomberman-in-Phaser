@@ -89,11 +89,12 @@ Bomberman.Lobby.prototype = {
 		this.startGameButton.visible = IamHost;
 		this.minPlayersMessage.visible = IamHost;
 
-		//register call back functions
+		//register callback functions
 		socket.on("new user has joined the lobby", this.handle_newUserJoined.bind(this));
 		socket.on("a user has left the lobby", this.handle_someUserHasLeft.bind(this));
 		socket.on("gamelist", this.goBackToMultiplayerMenu);
 		socket.on("you are the new host", this.enableHostMode.bind(this));
+		socket.on("feel free to start the game", this.runGame.bind(this));
 
 	},
 
@@ -141,6 +142,7 @@ Bomberman.Lobby.prototype = {
 		var spotNumber = data.spotNumber;
 		this.characterHeads[spotNumber].visible = false;
 		this.numPlayers--;
+
 		if(IamHost) {
 			this.checkIfCanStartGame();
 		}
@@ -173,14 +175,80 @@ Bomberman.Lobby.prototype = {
 		this.youAreHostMessage.visible = IamHost;
 		this.startGameButton.visible = IamHost;
 		this.minPlayersMessage.visible = IamHost;
+		this.checkIfCanStartGame();
 	},
 
 	checkIfCanStartGame: function() {
+
 		if(this.numPlayers >= 2) {
-			//do something
+
+			//update min players message
+			this.minPlayersMessage.text = "There are enough players to\nstart the game now !!";			
+			this.minPlayersMessage.fill = "green";
+
+			//recreate the start button and make it clickable
+			this.startGameButton.destroy();
+			this.startGameButton = this.game.add.button(
+				this.startBtnOffsetX, 
+				this.startBtnOffsetY,
+				"global_spritesheet", 
+				this.startGameBtnClicked, this, 
+				"button_start_game_over.png",  
+				"button_start_game_out.png"
+			);	
+
 		} else {
-			//do something else
+
+			//update min players message
+			this.minPlayersMessage.text = "Cannot start the game without\nat least 2 players."
+			this.minPlayersMessage.fill = "red";
+
+			//recreate the start button and make it unclickable
+			this.startGameButton.destroy();
+			this.startGameButton = this.game.add.button(
+				this.startBtnOffsetX, 
+				this.startBtnOffsetY,
+				"global_spritesheet", 
+				null, this, 
+				"button_start_game_locked.png",  
+				"button_start_game_locked.png"
+			);			
 		}
+	},
+
+	startGameBtnClicked: function() {
+		socket.emit('I want to start the game', {game_id: gameID});
+	},
+
+
+	//we read from data and initialize some variables that are going to be used
+	//in the MultiplayerGame state
+	runGame: function(data) {
+
+		//mpg stands for multi player game, it is used as sort of namespace
+		//for variables we will be using in the MultiplayerGame state
+
+		mpg.doorCoordinates = data.doorCoordinates;
+		mpg.map.width = data.mapWidth;
+		mpg.map.height = data.mapHeight;
+
+		//initialize players
+		mpg.players = [null,null,null,null];		
+		for(var i = 0; i < 4; ++i) {
+			if(this.characterHeads[i].visible) {
+				mpg.players[i] = new Player();
+			}
+		}
+
+		//we remember who we are
+		mpg.myPlayerNumber = playerNumber;
+		mpg.myPlayer = mpg.players[playerNumber];
+
+		//remove listeners
+		socket.removeAllListeners();	
+
+		//switch to the MultiplayerGame state
+		this.game.state.start('MultiplayerGame');
 	}
 
 

@@ -4,7 +4,7 @@ var Utils = {
 		return result;
 	},
 
-	isInRangeOfSomePlayer: function(x,y,blockRange) {
+	isInRangeOfSomePlayer: function(x,y,blockRange, players, map) {
 		var xcenter = x + map.terrainBlockSize/2;
 		var ycenter = y + map.terrainBlockSize/2;
 		var px,py;
@@ -13,6 +13,7 @@ var Utils = {
 		range2 *= range2;
 
 		for(var i = 0; i < players.length; ++i) {
+			if(players[i] == null) continue;
 			px = players[i].sprite.world.x + map.terrainBlockSize/2;
 			py = players[i].sprite.world.y + map.terrainBlockSize/2;
 			if( Math.abs(px - xcenter) > 1 && Math.abs(py - ycenter) > 1) continue;

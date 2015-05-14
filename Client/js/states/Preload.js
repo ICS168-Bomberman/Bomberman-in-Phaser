@@ -14,10 +14,10 @@ Bomberman.Preload.prototype = {
     this.load.atlasJSONHash('Door_spritesheet', 'Client/assets/images/sprites/Door.png', 
       'Client/assets/images/sprites/Door_atlas.json');  
     this.load.image('you_lose', 'Client/assets/images/You_Lose.png');
-    this.load.image('you_win', 'Client/assets/images/You_Win.png');	
+    this.load.image('you_win', 'Client/assets/images/You_Win.png'); 
   },
   create: function() {
-  	//this.state.start('MainMenu');
+    //this.state.start('MainMenu');
     this.state.start('IntroMenu');
   }
 };

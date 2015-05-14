@@ -253,10 +253,7 @@ console.log("CREATE");
 					rockBlock.body.immovable = true;
 					map.board[i][j].terrain = TerrainType.ROCK;
 
-				} else if(!Utils.isInRangeOfSomePlayer(x,y,map.initialBombRange) &&
-					(i != map.width-2 || j != map.height-2) &&
-					(i != map.width-3 || j != map.height-2) &&
-					(i != map.width-2 || j != map.height-3)) {
+				} else if(!Utils.isInRangeOfSomePlayer(x,y,map.initialBombRange, players, map)) {
 					numberOfGrass++;
 					grassBlock = map.grassBlocks.create(x,y,'global_spritesheet');
 					grassBlock.frameName = 'Grass.png';
@@ -428,13 +425,16 @@ console.log("CREATE");
 					enter = true;
 					this.game.add.sprite(0,28, 'you_win');
 					gameOver = true;
-				}
-				this.game.physics.arcade.collide(players[i].sprite, map.rockBlocks);
-				this.game.physics.arcade.collide(players[i].sprite, map.grassBlocks);
-				this.game.physics.arcade.collide(players[i].sprite, map.bombs);		
-				this.game.physics.arcade.overlap(players[i].sprite, map.powerups, this.handlePowerUps, null, players[i]);
-				this.game.physics.arcade.overlap(players[i].sprite, map.explosions, this.destroyPlayer, null, players[i]);
-				this.game.physics.arcade.overlap(players[i].sprite, map.enemies, this.destroyPlayer, null, players[i]);	
+					players[i].alive = false;
+					players[i].sprite.destroy();
+				} else {
+					this.game.physics.arcade.collide(players[i].sprite, map.rockBlocks);
+					this.game.physics.arcade.collide(players[i].sprite, map.grassBlocks);
+					this.game.physics.arcade.collide(players[i].sprite, map.bombs);		
+					this.game.physics.arcade.overlap(players[i].sprite, map.powerups, this.handlePowerUps, null, players[i]);
+					this.game.physics.arcade.overlap(players[i].sprite, map.explosions, this.destroyPlayer, null, players[i]);
+					this.game.physics.arcade.overlap(players[i].sprite, map.enemies, this.destroyPlayer, null, players[i]);	
+				}	
 			}
 		}
 
