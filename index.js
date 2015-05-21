@@ -2,7 +2,7 @@
 // get all the tools we need
 var express 	= require('express');
 var path 		= require('path');
-var mongoose 	= require('mongoose');
+//var mongoose 	= require('mongoose');
 var passport 	= require('passport');
 var flash 		= require('connect-flash');
 
@@ -17,7 +17,7 @@ var io  			= require('socket.io')(http_server);
 var UUID 			= require('node-uuid');
 
 // configuration =================================
-mongoose.connect("mongodb://localhost/passport"); // connect to our database
+//mongoose.connect("mongodb://localhost/passport"); // connect to our database
 require('./Server/config/passport')(passport); // pass passport for configuration
 
 //set up our socket.io server

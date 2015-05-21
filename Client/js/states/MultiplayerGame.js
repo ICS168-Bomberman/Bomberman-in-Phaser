@@ -225,7 +225,7 @@ Bomberman.MultiplayerGame.prototype = {
 					rockBlock.body.immovable = true;
 					mpg.map.board[i][j].terrain = TerrainType.ROCK;
 
-				} else if(!Utils.isInRangeOfSomePlayer(x,y, mpg.map.initialBombRange,mpg.players,mpg.map)) {
+				} /*else if(!Utils.isInRangeOfSomePlayer(x,y, mpg.map.initialBombRange,mpg.players,mpg.map)) {
 
 					grassBlock = mpg.map.grassBlocks.create(x,y,'global_spritesheet');
 					grassBlock.frameName = 'Grass.png';
@@ -236,7 +236,7 @@ Bomberman.MultiplayerGame.prototype = {
 					mpg.map.board[i][j].terrain = TerrainType.GRASS;
 					mpg.map.board[i][j].grassBlock = grassBlock;
 
-				} else {
+				}*/ else {
 
 					mpg.map.board[i][j].terrain = TerrainType.EMPTY;
 
