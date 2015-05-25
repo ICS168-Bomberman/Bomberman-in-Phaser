@@ -24,22 +24,23 @@ var Utils = {
 		return false;
 	},
 
-	blockCoords2WorldCoords: function(bx, by) {
+	blockCoords2WorldCoords: function(bx, by, map) {
 		wcoords = {};
 		wcoords.x = map.offsetX + bx * map.terrainBlockSize;
 		wcoords.y = map.offsetY + by * map.terrainBlockSize;
 		return wcoords;
 	},
-	worldCoords2BlockCoords: function(x, y, height, width)
+	worldCoords2BlockCoords: function(x, y, height, width, map)
 	{
 		var blockCoords = {};
 		blockCoords.x = 
-		Math.floor((x - map.offsetX + width/2) / 
+		Math.floor((x - map.offsetX + 5 + width/2) / 
 						map.terrainBlockSize);
 
 		blockCoords.y = 
 		Math.floor((y - map.offsetY + height/2)/ 
 						map.terrainBlockSize);
+		console.log(blockCoords);
 		return blockCoords;
 	},
 	create_2D_array: function(width, height) {

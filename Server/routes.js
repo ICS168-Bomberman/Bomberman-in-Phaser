@@ -5,6 +5,7 @@ module.exports = function(app, passport) {
 	//show either the game page or the login/signup page depending
 	// on whether the user is logged in or not
 	app.get('/', function(req, res) {
+		console.log(req.user);
 		if(req.isAuthenticated()) {
 			res.render('game.ejs', {user : req.user });
 		} else {
