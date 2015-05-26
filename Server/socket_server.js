@@ -43,6 +43,7 @@ function server(io, UUID) {
 		client.socket.on('I want to start the game', handle_wantStartGame.bind(client));
 		client.socket.on('disconnect', handle_disconnect.bind(client));
 		client.socket.on('my coordinates and such', handle_coordinatesReceived.bind(client));
+		client.socket.on('dropped a bomb', handle_droppedBombEvent.bind(client));
 	});
 
 	//the client is requeting the game list because he/she is entering the 
@@ -427,7 +428,6 @@ function server(io, UUID) {
 		client.character.velX = data.velX;
 		client.character.velY = data.velY;
 		client.character.orientation = data.orientation;
-		client.character.dropBomb = data.dropBomb;
 		client.character.alive = data.alive;
 		client.hasReceivedData = true;
 
@@ -460,7 +460,6 @@ function server(io, UUID) {
 					velX: client.character.velX,
 					velY: client.character.velY,
 					orientation: client.character.orientation,
-					dropBomb: client.character.dropBomb,
 					alive: client.character.alive
 				});
 		}
@@ -477,6 +476,18 @@ function server(io, UUID) {
 
 				client.socket.emit('receive game loop update data', data);
 			}			
+		}
+
+	}
+
+	function handle_droppedBombEvent(data) {
+		var client = this;
+		var game = gameHandles[client.game_id].game;
+		var players = game.players;
+		for(var i = 0; i < players.length; ++i) {
+			if(players[i] == null || players[i] == client)
+				continue;
+			players[i].socket.emit("bomb dropped", data);
 		}
 
 	}
