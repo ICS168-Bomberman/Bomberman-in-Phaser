@@ -427,6 +427,8 @@ function server(io, UUID) {
 		client.character.velX = data.velX;
 		client.character.velY = data.velY;
 		client.character.orientation = data.orientation;
+		client.character.dropBomb = data.dropBomb;
+		client.character.alive = data.alive;
 		client.hasReceivedData = true;
 
 	}
@@ -457,7 +459,9 @@ function server(io, UUID) {
 					y: client.character.worldY,
 					velX: client.character.velX,
 					velY: client.character.velY,
-					orientation: client.character.orientation
+					orientation: client.character.orientation,
+					dropBomb: client.character.dropBomb,
+					alive: client.character.alive
 				});
 		}
 

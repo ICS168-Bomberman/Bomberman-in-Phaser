@@ -6,11 +6,14 @@ Bomberman.MultiplayerGame = function(){};
 var mpg = {
 	keyboard: {},
 	map: {
-		initialBombRange: 1
+		initialBombRange: 1,
+		bombCounter: 0
 	},
 	updateDataQueue: new Queue(),
 	defaultVelocity: 130,
-	sendInterval: 10 //in milliseconds
+	sendInterval: 10, //in milliseconds
+
+	num: 0
 };
 
 //information (mainly about sprites) for the 4 players in the game defined clockwise
@@ -67,7 +70,8 @@ Bomberman.MultiplayerGame.prototype = {
 	},
 
 	generateMap: function() {
-
+		var audio = new Audio('Client/assets/music/Bomberman Theme.mp3');
+		audio.play();
 		//create map as a bidimensional array
 		mpg.map.offsetX = 100;
 		mpg.map.offsetY = 50;
@@ -93,11 +97,13 @@ Bomberman.MultiplayerGame.prototype = {
 
 			if(player == null)
 				continue;
-
+			
 			///set initial velocity
 			player.vel = mpg.defaultVelocity;
 			//set initial orientation
 			player.orientation = characterSprites[i].initialOrientation;
+			player.alive = true;
+			mpg.myPlayer.alive = true;
 
 			//computing initial coordinates
 			if(i == 0) { //upper left
@@ -258,43 +264,100 @@ Bomberman.MultiplayerGame.prototype = {
 
 			for(var i = 0; i < data.length; ++i) {
 				var playerData = data[i];
+				console.log(playerData);
 
 				if(playerData.playerNum == mpg.myPlayerNumber) continue; //skip updates for our own player
-
-				var player = mpg.players[playerData.playerNum];
-
-				player.sprite.x = playerData.x;
-				player.sprite.y = playerData.y;
-				player.sprite.body.velocity.x = playerData.velX;
-				player.sprite.body.velocity.y = playerData.velY;
-				player.orientation = playerData.orientation;
-
-				if (player.sprite.body.velocity.x != 0 || player.sprite.body.velocity.y != 0)
+				
+				if (playerData.alive)
 				{
-					switch(playerData.orientation)
+					var player = mpg.players[playerData.playerNum];
+
+					player.sprite.x = playerData.x;
+					player.sprite.y = playerData.y;
+					player.sprite.body.velocity.x = playerData.velX;
+					player.sprite.body.velocity.y = playerData.velY;
+					player.orientation = playerData.orientation;
+					player.dropBomb = playerData.dropBomb;
+					player.alive = playerData.alive;
+
+					if (player.sprite.body.velocity.x != 0 || player.sprite.body.velocity.y != 0)
 					{
-						case "left": 
-							player.sprite.animations.play('left');
-							player.standingFrame = player.standingLeft ;
-							break;
-						case "right":
-							player.sprite.animations.play('right');
-							player.standingFrame = player.standingRight ;
-							break;
-						case "up":
-							player.sprite.animations.play('up');
-							player.standingFrame = player.standingUp ;
-							break;
-						case "down": 
-							player.sprite.animations.play('down');
-							player.standingFrame = player.standingDown ;
-							break;
+						switch(player.orientation)
+						{
+							case "left": 
+								player.sprite.animations.play('left');
+								player.standingFrame = player.standingLeft ;
+								break;
+							case "right":
+								player.sprite.animations.play('right');
+								player.standingFrame = player.standingRight ;
+								break;
+							case "up":
+								player.sprite.animations.play('up');
+								player.standingFrame = player.standingUp ;
+								break;
+							case "down": 
+								player.sprite.animations.play('down');
+								player.standingFrame = player.standingDown ;
+								break;
+						}
+					}
+					else
+					{
+						player.sprite.animations.stop();
+						player.sprite.frameName = player.standingFrame;
+					}
+					if(player.dropBomb){//mpg.keyboard.spaceBar.isDown) {
+
+						var bcoords = Utils.worldCoords2BlockCoords(player.sprite.x, player.sprite.y,
+										mpg.map.height, mpg.map.width, mpg.map);
+						var bx = bcoords.x;
+						var by = bcoords.y;
+						var wcoords = Utils.blockCoords2WorldCoords(bx, by, mpg.map);
+						var wx = wcoords.x;
+						var wy = wcoords.y;
+
+						if (mpg.map.board[bx][by].hasBomb)
+							return;
+						var audio = new Audio('Client/assets/music/BOM_SET.wav');
+						audio.play();
+						mpg.map.board[bx][by].hasBomb = true;
+						var bomb = new Bomb();
+
+						bomb.explosionFragments = [];
+						bomb.bx = bx;
+						bomb.by = by;
+						bomb.wx = wx;
+						bomb.wy = wy;
+
+						bomb.sprite = mpg.map.bombs.create(wx, wy, 'global_spritesheet');
+						bomb.sprite.frameName = 'bomb0.png';
+
+						Utils.updateFrameDimensions(bomb,this.game.cache);
+						bomb.sprite.anchor.x = 0.5;
+						bomb.sprite.anchor.y = 0.5;
+						bomb.sprite.scale.set(mpg.map.terrainBlockSize / bomb.frameWidth,
+													 mpg.map.terrainBlockSize / bomb.frameHeight);
+						bomb.sprite.animations.add('bomb',[
+							'bomb0.png',
+							'bomb1.png',
+							'bomb2.png',
+							'bomb3.png'
+							],2,false);
+						bomb.sprite.animations.play('bomb');
+
+						this.game.physics.arcade.enable(bomb.sprite);
+						bomb.sprite.body.immovable = true;
+
+						mpg.map.board[bx][by].bomb = bomb;
+						player.dropBomb = false;
+
+						this.game.time.events.add(2000,this.explodeBomb,this,bomb);
 					}
 				}
 				else
 				{
-					player.sprite.animations.stop();
-					player.sprite.frameName = player.standingFrame;
+					mpg.players[playerData.playerNum].sprite.destroy();
 				}
 			}
 		}		
@@ -304,55 +367,343 @@ Bomberman.MultiplayerGame.prototype = {
 		this.game.physics.arcade.collide(mpg.myPlayer.sprite, mpg.map.rockBlocks);
 		//against grass
 		this.game.physics.arcade.collide(mpg.myPlayer.sprite, mpg.map.grassBlocks);			
-
-		//handle our player's movement and animations
-		mpg.myPlayer.sprite.body.velocity.x = 0;
-		mpg.myPlayer.sprite.body.velocity.y = 0;
-
-		if(mpg.keyboard.cursors.left.isDown) {
-			mpg.myPlayer.sprite.body.velocity.x = -mpg.myPlayer.vel;
-			mpg.myPlayer.standingFrame = mpg.myPlayer.standingLeft ;
-			mpg.myPlayer.sprite.animations.play('left');
-			mpg.myPlayer.orientation = "left";
-
-		} else if(mpg.keyboard.cursors.right.isDown) {
-			mpg.myPlayer.sprite.body.velocity.x = mpg.myPlayer.vel;
-			mpg.myPlayer.standingFrame = mpg.myPlayer.standingRight;
-			mpg.myPlayer.sprite.animations.play('right');
-			mpg.myPlayer.orientation = "right";
-
-		} else if(mpg.keyboard.cursors.up.isDown) {
-			mpg.myPlayer.sprite.body.velocity.y = -mpg.myPlayer.vel;
-			mpg.myPlayer.standingFrame = mpg.myPlayer.standingUp;
-			mpg.myPlayer.sprite.animations.play('up');
-			mpg.myPlayer.orientation = "up";
-
-		} else if(mpg.keyboard.cursors.down.isDown) {
-			mpg.myPlayer.sprite.body.velocity.y = mpg.myPlayer.vel;
-			mpg.myPlayer.standingFrame = mpg.myPlayer.standingDown;
-			mpg.myPlayer.sprite.animations.play('down');
-			mpg.myPlayer.orientation = "down";
-
-		} else {
-			mpg.myPlayer.sprite.animations.stop();
-			mpg.myPlayer.sprite.frameName = mpg.myPlayer.standingFrame;
-		}
 		
-		//check if it's time to send our coordinates to the server		
+		this.game.physics.arcade.collide(mpg.myPlayer.sprite, mpg.map.bombs);		
+//		this.game.physics.arcade.overlap(players[i].sprite, map.powerups, this.handlePowerUps, null, players[i]);
+		this.game.physics.arcade.overlap(mpg.myPlayer.sprite, mpg.map.explosions, this.destroyPlayer, null, mpg.myPlayer.sprite);
+//		this.game.physics.arcade.overlap(players[i].sprite, map.enemies, this.destroyPlayer, null, players[i]);	
+		
+		if (mpg.myPlayer.alive)
+		{
+			mpg.myPlayer.dropBomb = false;
+
+			//handle our player's movement and animations
+			mpg.myPlayer.sprite.body.velocity.x = 0;
+			mpg.myPlayer.sprite.body.velocity.y = 0;
+
+			if(mpg.keyboard.cursors.left.isDown) {
+				mpg.myPlayer.sprite.body.velocity.x = -mpg.myPlayer.vel;
+				mpg.myPlayer.standingFrame = mpg.myPlayer.standingLeft ;
+				mpg.myPlayer.sprite.animations.play('left');
+				mpg.myPlayer.orientation = "left";
+
+			} else if(mpg.keyboard.cursors.right.isDown) {
+				mpg.myPlayer.sprite.body.velocity.x = mpg.myPlayer.vel;
+				mpg.myPlayer.standingFrame = mpg.myPlayer.standingRight;
+				mpg.myPlayer.sprite.animations.play('right');
+				mpg.myPlayer.orientation = "right";
+
+			} else if(mpg.keyboard.cursors.up.isDown) {
+				mpg.myPlayer.sprite.body.velocity.y = -mpg.myPlayer.vel;
+				mpg.myPlayer.standingFrame = mpg.myPlayer.standingUp;
+				mpg.myPlayer.sprite.animations.play('up');
+				mpg.myPlayer.orientation = "up";
+
+			} else if(mpg.keyboard.cursors.down.isDown) {
+				mpg.myPlayer.sprite.body.velocity.y = mpg.myPlayer.vel;
+				mpg.myPlayer.standingFrame = mpg.myPlayer.standingDown;
+				mpg.myPlayer.sprite.animations.play('down');
+				mpg.myPlayer.orientation = "down";
+
+			} else {
+				mpg.myPlayer.sprite.animations.stop();
+				mpg.myPlayer.sprite.frameName = mpg.myPlayer.standingFrame;
+			}
+			if(mpg.keyboard.spaceBar.isDown && mpg.map.bombCounter == 0) {
+				console.log("MY PLAYER~~~~~~~~~~~");
+				var bcoords = Utils.worldCoords2BlockCoords(mpg.myPlayer.sprite.x, mpg.myPlayer.sprite.y,
+								mpg.map.height, mpg.map.width, mpg.map);
+				var bx = bcoords.x;
+				var by = bcoords.y;
+				var wcoords = Utils.blockCoords2WorldCoords(bx, by, mpg.map);
+				var wx = wcoords.x;
+				var wy = wcoords.y;
+
+				if (mpg.map.board[bx][by].hasBomb)
+					return;
+				mpg.myPlayer.dropBomb = true;
+				var audio = new Audio('Client/assets/music/BOM_SET.wav');
+				audio.play();
+				mpg.map.board[bx][by].hasBomb = true;
+				var bomb = new Bomb();
+
+				bomb.explosionFragments = [];
+				bomb.bx = bx;
+				bomb.by = by;
+				bomb.wx = wx;
+				bomb.wy = wy;
+
+				bomb.sprite = mpg.map.bombs.create(wx, wy, 'global_spritesheet');
+				bomb.sprite.frameName = 'bomb0.png';
+
+				Utils.updateFrameDimensions(bomb,this.game.cache);
+				bomb.sprite.anchor.x = 0.5;
+				bomb.sprite.anchor.y = 0.5;
+				bomb.sprite.scale.set(mpg.map.terrainBlockSize / bomb.frameWidth,
+											 mpg.map.terrainBlockSize / bomb.frameHeight);
+				bomb.sprite.animations.add('bomb',[
+					'bomb0.png',
+					'bomb1.png',
+					'bomb2.png',
+					'bomb3.png'
+					],2,false);
+				bomb.sprite.animations.play('bomb');
+
+				this.game.physics.arcade.enable(bomb.sprite);
+				bomb.sprite.body.immovable = true;
+
+				mpg.map.board[bx][by].bomb = bomb;
+				mpg.map.bombCounter = 1;
+				this.game.time.events.add(2000,this.explodeBomb,this,bomb);
+			}
+
+			//check if it's time to send our coordinates to the server		
+			if(this.game.time.now - mpg.initialTime >= mpg.nextSendTime) {
+				mpg.nextSendTime += mpg.sendInterval;
+				var data = {				
+						x: mpg.myPlayer.sprite.x,
+						y: mpg.myPlayer.sprite.y,
+						velX: mpg.myPlayer.sprite.body.velocity.x,
+						velY: mpg.myPlayer.sprite.body.velocity.y,
+						orientation: mpg.myPlayer.orientation,
+						dropBomb: mpg.myPlayer.dropBomb,
+						alive: mpg.myPlayer.alive
+					};
+				socket.emit("my coordinates and such", data);
+				//console.log("we are sending information to the server");
+				//console.log(data);
+			}
+		}
+		else
+		{
+			mpg.myPlayer.sprite.destroy();
+		}
+	},
+	explodeBomb: function(bomb) {
+
+		//add the central explosion fragment at the position of the bomb by default
+		this.addNewExplosionFragmentToBomb(bomb,"explosion_center.png",bomb.wx,bomb.wy);
+
+		var bx, by, next_bx, next_by;		
+		var frnameMiddle;
+		var frnameEnd;
+		var maxRangeReached;
+
+		//upwards
+		bx = bomb.bx;
+		next_bx = bx;
+		frnameMiddle = "explosion_up1.png";
+		frnameEnd = "explosion_up2.png"
+		for(var i = 1; i <= mpg.map.initialBombRange; ++i) {
+			by = bomb.by - i;
+			next_by = by - 1;
+			maxRangeReached = (i == mpg.map.initialBombRange);
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached))
+				break;	
+		}
+		//downwards
+		bx = bomb.bx;
+		next_bx = bx;
+		frnameMiddle = "explosion_down1.png";
+		frnameEnd = "explosion_down2.png"
+		for(var i = 1; i <= mpg.map.initialBombRange; ++i) {
+			by = bomb.by + i;
+			next_by = by + 1;
+			maxRangeReached = (i == mpg.map.initialBombRange);
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached))
+				break;	
+		}
+		//rightwards
+		by = bomb.by;
+		next_by = by;
+		frnameMiddle = "explosion_right1.png";
+		frnameEnd = "explosion_right2.png"
+		for(var i = 1; i <= mpg.map.initialBombRange; ++i) {
+			bx = bomb.bx + i;
+			next_bx = bx + 1;
+			maxRangeReached = (i == mpg.map.initialBombRange);
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached))
+				break;	
+		}
+		//leftwards
+		by = bomb.by;
+		next_by = by;
+		frnameMiddle = "explosion_left1.png";
+		frnameEnd = "explosion_left2.png"
+		for(var i = 1; i <= mpg.map.initialBombRange; ++i) {
+			bx = bomb.bx - i;
+			next_bx = bx - 1;
+			maxRangeReached = (i == mpg.map.initialBombRange);
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached))
+				break;	
+		}
+
+		this.game.time.events.add(500,this.removeExplosion,this,bomb);
+
+		//remove bomb from the place
+		bomb.sprite.destroy();
+		mpg.map.board[bomb.bx][bomb.by].hasBomb = false;
+
+		var audio = new Audio('Client/assets/music/BOM_11_S.wav');
+		audio.play();
+		mpg.map.bombCounter = 0;
+	},
+	handleExplosionEffectOnBlock: function(frnameMiddle, frnameEnd, bomb, bx, by, next_bx, next_by, maxRangeReached) {
+
+		//check that we are not beyond the allowed dimensions
+		if(Utils.outsideBoard(bx,by))
+			return true;
+
+		var cell = mpg.map.board[bx][by];
+
+		var output = true;
+
+		if(cell.terrain == TerrainType.GRASS) {
+
+			//destroy the grass block
+			cell.grassBlock.destroy();
+			cell.terrain = TerrainType.EMPTY;
+			numberOfGrass--;
+			var randomValue = Math.floor(Math.random()*10);
+			if (randomValue == 0 && switchCount == 0 && numberOfGrass != 0)
+			{
+				var wcoords = Utils.blockCoords2WorldCoords(bx, by, mpg.map);
+				var powerup = mpg.map.powerups.create(wcoords.x, wcoords.y, "global_spritesheet");
+				mpg.map.board[bx][by].hasPowerUp = true;
+				mpg.map.board[bx][by].powerup = powerup;
+				var randomPowerUp = powerups[Math.floor(Math.random() * powerups.length)];
+				powerup.frameName = randomPowerUp;
+				powerup.anchor.x = 0.5;
+				powerup.anchor.y = 0.5;
+				var dim = Utils.getFrameDimensions(randomPowerUp, this.game.cache);
+				var scaleX = mpg.map.terrainBlockSize / dim.width;
+				var scaleY = mpg.map.terrainBlockSize / dim.height;
+				powerup.scale.set(scaleX,scaleY);
+				switchCount = 1;	
+			}
+
+			var randomValue2 = Math.floor(Math.random()*10);
+			if (((randomValue2 == 0 && doorCount == 0) || (numberOfGrass == 0 && doorCount == 0)) && switchCount == 0)
+			{
+				door.blockCoords.x = bx;
+				door.blockCoords.y = by;
+
+				var wcoords = Utils.blockCoords2WorldCoords(bx, by, mpg.map);
+				/////////////////////
+				// CREATING A DOOR //
+				/////////////////////
+
+				//computing initial coordinates
+				door.x = wcoords.x;
+				door.y = wcoords.y;
+
+				//creating the sprite
+				door.sprite = this.game.add.sprite(door.x,door.y, 'Door_spritesheet');	
+
+				//movement animations
+				door.sprite.animations.add('move',[
+					'door1.png',
+					'door2.png',
+					'door3.png',
+					'door4.png',
+					],8,true);
+
+				door.sprite.frameName = 'door1.png';
+
+				var frame = this.game.cache.getFrameData("Door_spritesheet").getFrameByName(door.sprite.frameName);
+
+				door.frameWidth = frame.width;
+				door.frameHeight = frame.height;
+
+				door.sprite.anchor.x = 0.5;
+				door.sprite.anchor.y = 0.5;
+				door.sprite.scale.set( (mpg.map.playerBlockSize / door.frameWidth)*1.5,
+												  (mpg.map.playerBlockSize / door.frameHeight)*1.5);
+				//enabling physics		
+				this.game.physics.arcade.enable(door.sprite);
+
+				doorCount = 1;
+
+				door.sprite.animations.play('move');
+			}
+			switchCount = 0;
+
+			output = false;
+
+		} else if(cell.terrain == TerrainType.EMPTY) {
+			if (mpg.map.board[bx][by].hasPowerUp)
+			{
+				mpg.map.board[bx][by].powerup.destroy();
+				mpg.map.board[bx][by].hasPowerUp = false;
+			}
+			output = false;
+		}
+
+		if(output == false) {
+
+			//add a new explosion fragment in the place.
+			//first, check the lookahead coords to know whether
+			//we have to use the middle sprite or the end sprite
+			var frameName;
+			if( Utils.outsideBoard(next_bx,next_by) || maxRangeReached)
+				frameName = frnameEnd;
+			else {
+				var nextTerrain = mpg.map.board[next_bx][next_by].terrain;
+				if(nextTerrain == TerrainType.EMPTY || nextTerrain == TerrainType.GRASS)
+					frameName = frnameMiddle;
+				else 
+					frameName = frnameEnd;
+			}
+
+			var wcoords = Utils.blockCoords2WorldCoords(bx,by, mpg.map);
+			this.addNewExplosionFragmentToBomb(bomb,frameName,wcoords.x,wcoords.y);
+		}
+
+		return output;
+	},
+	addNewExplosionFragmentToBomb: function(bomb,frameName,x,y){
+		var explosion;
+
+		explosion = mpg.map.explosions.create(x, y, 'global_spritesheet');
+		explosion.frameName =  frameName;
+
+		explosion.anchor.x = 0.5;
+		explosion.anchor.y = 0.5;
+
+		var dims = Utils.getFrameDimensions(explosion.frameName,this.game.cache);
+		var scaleX = mpg.map.terrainBlockSize / dims.width;
+		var scaleY = mpg.map.terrainBlockSize / dims.height;
+		explosion.scale.set(scaleX,scaleY);	
+
+		explosion.body.immovable = true;
+		this.game.physics.arcade.enable(explosion);
+
+		//add the explosion to the explosion fragments of the source bomb
+		bomb.explosionFragments.push(explosion);
+	},
+
+	removeExplosion: function(bomb) {
+		for(var i = 0; i < bomb.explosionFragments.length; ++i) {
+			bomb.explosionFragments[i].destroy();
+		}
+		bomb.explosionFragments.length = 0;
+	},
+
+	destroyPlayer: function() {
+		mpg.myPlayer.alive = false;
 		if(this.game.time.now - mpg.initialTime >= mpg.nextSendTime) {
 			mpg.nextSendTime += mpg.sendInterval;
 			var data = {				
-					x: mpg.myPlayer.sprite.x,
-					y: mpg.myPlayer.sprite.y,
-					velX: mpg.myPlayer.sprite.body.velocity.x,
-					velY: mpg.myPlayer.sprite.body.velocity.y,
-					orientation: mpg.myPlayer.orientation
-				};
+				x: mpg.myPlayer.sprite.x,
+				y: mpg.myPlayer.sprite.y,
+				velX: mpg.myPlayer.sprite.body.velocity.x,
+				velY: mpg.myPlayer.sprite.body.velocity.y,
+				orientation: mpg.myPlayer.orientation,
+				dropBomb: mpg.myPlayer.dropBomb,
+				alive: mpg.myPlayer.alive
+			};
 			socket.emit("my coordinates and such", data);
-			//console.log("we are sending information to the server");
-			//console.log(data);
 		}
-		
 	},
 
 	enqueueUpdateData: function(data) {

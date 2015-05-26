@@ -726,7 +726,7 @@ console.log("CREATE");
 		var bx = player.blockCoords.x;
 		var by = player.blockCoords.y;
 
-		var wcoords = Utils.blockCoords2WorldCoords(bx,by);
+		var wcoords = Utils.blockCoords2WorldCoords(bx,by, map);
 
 		//check that block doesn't have a bomb already
 		if(map.board[bx][by].hasBomb) 
@@ -877,7 +877,7 @@ console.log("CREATE");
 			var randomValue = Math.floor(Math.random()*10);
 			if (randomValue == 0 && switchCount == 0 && numberOfGrass != 0)
 			{
-				var wcoords = Utils.blockCoords2WorldCoords(bx, by);
+				var wcoords = Utils.blockCoords2WorldCoords(bx, by, map);
 				var powerup = map.powerups.create(wcoords.x, wcoords.y, "global_spritesheet");
 				map.board[bx][by].hasPowerUp = true;
 				map.board[bx][by].powerup = powerup;
@@ -898,7 +898,7 @@ console.log("CREATE");
 				door.blockCoords.x = bx;
 				door.blockCoords.y = by;
 
-				var wcoords = Utils.blockCoords2WorldCoords(bx, by);
+				var wcoords = Utils.blockCoords2WorldCoords(bx, by, map);
 				/////////////////////
 				// CREATING A DOOR //
 				/////////////////////
@@ -965,7 +965,7 @@ console.log("CREATE");
 					frameName = frnameEnd;
 			}
 
-			var wcoords = Utils.blockCoords2WorldCoords(bx,by);
+			var wcoords = Utils.blockCoords2WorldCoords(bx,by, map);
 			this.addNewExplosionFragmentToBomb(bomb,frameName,wcoords.x,wcoords.y);
 		}
 
