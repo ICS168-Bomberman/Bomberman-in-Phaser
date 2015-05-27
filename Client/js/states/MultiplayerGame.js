@@ -338,13 +338,13 @@ Bomberman.MultiplayerGame.prototype = {
 				}
 
 				if (playerData.playerNum == 0)
-					scoreTable1.text = "Player 1: "+ playerData.score;
+					scoreTable1.text = "Blue Bomberman: "+ playerData.score;
 				if (playerData.playerNum == 1)
-					scoreTable2.text = "Player 2: "+ playerData.score;
+					scoreTable2.text = "Grey Bomberman: "+ playerData.score;
 				if (playerData.playerNum == 2)
-					scoreTable3.text = "Player 3: "+ playerData.score;
+					scoreTable3.text = "Pink Bomberman: "+ playerData.score;
 				if (playerData.playerNum == 3)
-					scoreTable4.text = "Player 4: "+ playerData.score;
+					scoreTable4.text = "White Bomberman: "+ playerData.score;
 
 				if(playerData.playerNum == mpg.myPlayerNumber) continue; //skip updates for our own player
 				
