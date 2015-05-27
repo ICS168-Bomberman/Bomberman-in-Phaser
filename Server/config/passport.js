@@ -26,7 +26,7 @@ module.exports = function(passport) {
 		console.log("--------------------------");
 		console.log("deserializeUser called");
 
-		db.get('SELECT id, username FROM userInfo WHERE id = ?', id, function(err, row) {
+		db.get('SELECT id, username, score FROM userInfo WHERE id = ?', id, function(err, row) {
 			done(err,row);
 			/*if (!row) return done(null, false);
 			return done(null, row);*/
