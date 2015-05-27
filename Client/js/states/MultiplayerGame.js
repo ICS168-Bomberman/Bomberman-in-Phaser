@@ -59,13 +59,18 @@ Bomberman.MultiplayerGame.prototype = {
 
   		//set up the keyboard
   		mpg.keyboard.cursors = this.game.input.keyboard.createCursorKeys();
-  		mpg.keyboard.spaceBar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+  		mpg.keyboard.alt = this.game.input.keyboard.addKey(Phaser.Keyboard.ALT);
+
+  		//score table
+		var scoreTable;
+		var graphics;
 
   		//generate map
 		this.generateMap();
 
 		//register callbacks fucntions in the socket
 		socket.on('receive game loop update data', this.enqueueUpdateData);		
+		socket.on('bomb dropped', this.handleBombDroppedFromServer.bind(this));
 
 	},
 
@@ -81,16 +86,54 @@ Bomberman.MultiplayerGame.prototype = {
 		mpg.nextSendTime = mpg.sendInterval;
 		mpg.initialTime = this.game.time.now;
 
+		// Player 1 Score
+		graphics1 = this.game.add.graphics(650, 40);
+    	graphics1.lineStyle(2, 0x000000, 1);
+    	graphics1.drawRect(0, 0, 300, 30);
+
+		scoreTable1 = this.game.add.text(660, 40);
+		scoreTable1.font = "Carter One";
+		scoreTable1.fill = "blue";
+		scoreTable1.fontSize = 30;
+
+		// Player 2 Score
+		graphics2 = this.game.add.graphics(650, 40 + 31);
+    	graphics2.lineStyle(2, 0x000000, 1);
+    	graphics2.drawRect(0, 0, 300, 30);
+
+		scoreTable2 = this.game.add.text(660, 40 + 31);
+		scoreTable2.font = "Carter One";
+		scoreTable2.fill = "blue";
+		scoreTable2.fontSize = 30;
+
+		// Player 3 Score
+		graphics3 = this.game.add.graphics(650, 40 + 2*31);
+    	graphics3.lineStyle(2, 0x000000, 1);
+    	graphics3.drawRect(0, 0, 300, 30);
+
+		scoreTable3 = this.game.add.text(660, 40 + 2*31);
+		scoreTable3.font = "Carter One";
+		scoreTable3.fill = "blue";
+		scoreTable3.fontSize = 30;
+
+		// Player 4 Score
+		graphics4 = this.game.add.graphics(650, 40 + 3*31);
+    	graphics4.lineStyle(2, 0x000000, 1);
+    	graphics4.drawRect(0, 0, 300, 30);
+
+		scoreTable4 = this.game.add.text(660, 40 + 3*31);
+		scoreTable4.font = "Carter One";
+		scoreTable4.fill = "blue";
+		scoreTable4.fontSize = 30;
+
 		//clear the coordinates queue
 		while(mpg.updateDataQueue.length > 0) {
 			mpg.updateDataQueue.dequeue();
 		}
 
-
 		///////////////////////////
 		////  CREATING PLAYERS ////
 		///////////////////////////
-
 		for(var i = 0; i < 4; ++i) {
 
 			var player = mpg.players[i];
@@ -104,6 +147,8 @@ Bomberman.MultiplayerGame.prototype = {
 			player.orientation = characterSprites[i].initialOrientation;
 			player.alive = true;
 			mpg.myPlayer.alive = true;
+			player.score = 0;
+			mpg.myPlayer.score = 0;
 
 			//computing initial coordinates
 			if(i == 0) { //upper left
@@ -255,16 +300,26 @@ Bomberman.MultiplayerGame.prototype = {
 	update: function() {		
 
 		//check for coordinates updates from the server
-		if (mpg.updateDataQueue.getLength() > 0) {
+		//if (mpg.updateDataQueue.getLength() > 0) {
+		if(mpg.lastDataPackage) {
 			
-			var data = mpg.updateDataQueue.dequeue();
+			var data = mpg.lastDataPackage;
+			mpg.lastDataPackage.null;
 
 			//console.log("from the update loop: we are dequeueing the following data");
 			//console.log(data);
 
 			for(var i = 0; i < data.length; ++i) {
 				var playerData = data[i];
-				console.log(playerData);
+
+				if (playerData.playerNum == 0)
+					scoreTable1.text = "Player 1: "+ playerData.score;
+				if (playerData.playerNum == 1)
+					scoreTable2.text = "Player 2: "+ playerData.score;
+				if (playerData.playerNum == 2)
+					scoreTable3.text = "Player 3: "+ playerData.score;
+				if (playerData.playerNum == 3)
+					scoreTable4.text = "Player 4: "+ playerData.score;
 
 				if(playerData.playerNum == mpg.myPlayerNumber) continue; //skip updates for our own player
 				
@@ -277,7 +332,6 @@ Bomberman.MultiplayerGame.prototype = {
 					player.sprite.body.velocity.x = playerData.velX;
 					player.sprite.body.velocity.y = playerData.velY;
 					player.orientation = playerData.orientation;
-					player.dropBomb = playerData.dropBomb;
 					player.alive = playerData.alive;
 
 					if (player.sprite.body.velocity.x != 0 || player.sprite.body.velocity.y != 0)
@@ -307,53 +361,7 @@ Bomberman.MultiplayerGame.prototype = {
 						player.sprite.animations.stop();
 						player.sprite.frameName = player.standingFrame;
 					}
-					if(player.dropBomb){//mpg.keyboard.spaceBar.isDown) {
-
-						var bcoords = Utils.worldCoords2BlockCoords(player.sprite.x, player.sprite.y,
-										mpg.map.height, mpg.map.width, mpg.map);
-						var bx = bcoords.x;
-						var by = bcoords.y;
-						var wcoords = Utils.blockCoords2WorldCoords(bx, by, mpg.map);
-						var wx = wcoords.x;
-						var wy = wcoords.y;
-
-						if (mpg.map.board[bx][by].hasBomb)
-							return;
-						var audio = new Audio('Client/assets/music/BOM_SET.wav');
-						audio.play();
-						mpg.map.board[bx][by].hasBomb = true;
-						var bomb = new Bomb();
-
-						bomb.explosionFragments = [];
-						bomb.bx = bx;
-						bomb.by = by;
-						bomb.wx = wx;
-						bomb.wy = wy;
-
-						bomb.sprite = mpg.map.bombs.create(wx, wy, 'global_spritesheet');
-						bomb.sprite.frameName = 'bomb0.png';
-
-						Utils.updateFrameDimensions(bomb,this.game.cache);
-						bomb.sprite.anchor.x = 0.5;
-						bomb.sprite.anchor.y = 0.5;
-						bomb.sprite.scale.set(mpg.map.terrainBlockSize / bomb.frameWidth,
-													 mpg.map.terrainBlockSize / bomb.frameHeight);
-						bomb.sprite.animations.add('bomb',[
-							'bomb0.png',
-							'bomb1.png',
-							'bomb2.png',
-							'bomb3.png'
-							],2,false);
-						bomb.sprite.animations.play('bomb');
-
-						this.game.physics.arcade.enable(bomb.sprite);
-						bomb.sprite.body.immovable = true;
-
-						mpg.map.board[bx][by].bomb = bomb;
-						player.dropBomb = false;
-
-						this.game.time.events.add(2000,this.explodeBomb,this,bomb);
-					}
+					
 				}
 				else
 				{
@@ -409,7 +417,7 @@ Bomberman.MultiplayerGame.prototype = {
 				mpg.myPlayer.sprite.animations.stop();
 				mpg.myPlayer.sprite.frameName = mpg.myPlayer.standingFrame;
 			}
-			if(mpg.keyboard.spaceBar.isDown && mpg.map.bombCounter == 0) {
+			if(mpg.keyboard.alt.isDown && mpg.map.bombCounter == 0) {
 				console.log("MY PLAYER~~~~~~~~~~~");
 				var bcoords = Utils.worldCoords2BlockCoords(mpg.myPlayer.sprite.x, mpg.myPlayer.sprite.y,
 								mpg.map.height, mpg.map.width, mpg.map);
@@ -454,7 +462,11 @@ Bomberman.MultiplayerGame.prototype = {
 
 				mpg.map.board[bx][by].bomb = bomb;
 				mpg.map.bombCounter = 1;
-				this.game.time.events.add(2000,this.explodeBomb,this,bomb);
+				this.game.time.events.add(2000,this.explodeBomb,this,bomb, playerData.playerNum);
+
+
+				socket.emit("dropped a bomb", {bx: bx, by: by});
+
 			}
 
 			//check if it's time to send our coordinates to the server		
@@ -466,8 +478,8 @@ Bomberman.MultiplayerGame.prototype = {
 						velX: mpg.myPlayer.sprite.body.velocity.x,
 						velY: mpg.myPlayer.sprite.body.velocity.y,
 						orientation: mpg.myPlayer.orientation,
-						dropBomb: mpg.myPlayer.dropBomb,
-						alive: mpg.myPlayer.alive
+						alive: mpg.myPlayer.alive,
+						score: mpg.myPlayer.score
 					};
 				socket.emit("my coordinates and such", data);
 				//console.log("we are sending information to the server");
@@ -479,7 +491,7 @@ Bomberman.MultiplayerGame.prototype = {
 			mpg.myPlayer.sprite.destroy();
 		}
 	},
-	explodeBomb: function(bomb) {
+	explodeBomb: function(bomb, playerNum) {
 
 		//add the central explosion fragment at the position of the bomb by default
 		this.addNewExplosionFragmentToBomb(bomb,"explosion_center.png",bomb.wx,bomb.wy);
@@ -498,7 +510,7 @@ Bomberman.MultiplayerGame.prototype = {
 			by = bomb.by - i;
 			next_by = by - 1;
 			maxRangeReached = (i == mpg.map.initialBombRange);
-			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached))
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached, playerNum))
 				break;	
 		}
 		//downwards
@@ -510,7 +522,7 @@ Bomberman.MultiplayerGame.prototype = {
 			by = bomb.by + i;
 			next_by = by + 1;
 			maxRangeReached = (i == mpg.map.initialBombRange);
-			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached))
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached, playerNum))
 				break;	
 		}
 		//rightwards
@@ -522,7 +534,7 @@ Bomberman.MultiplayerGame.prototype = {
 			bx = bomb.bx + i;
 			next_bx = bx + 1;
 			maxRangeReached = (i == mpg.map.initialBombRange);
-			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached))
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached, playerNum))
 				break;	
 		}
 		//leftwards
@@ -534,7 +546,7 @@ Bomberman.MultiplayerGame.prototype = {
 			bx = bomb.bx - i;
 			next_bx = bx - 1;
 			maxRangeReached = (i == mpg.map.initialBombRange);
-			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached))
+			if(this.handleExplosionEffectOnBlock(frnameMiddle,frnameEnd,bomb,bx,by,next_bx,next_by, maxRangeReached, playerNum))
 				break;	
 		}
 
@@ -548,7 +560,7 @@ Bomberman.MultiplayerGame.prototype = {
 		audio.play();
 		mpg.map.bombCounter = 0;
 	},
-	handleExplosionEffectOnBlock: function(frnameMiddle, frnameEnd, bomb, bx, by, next_bx, next_by, maxRangeReached) {
+	handleExplosionEffectOnBlock: function(frnameMiddle, frnameEnd, bomb, bx, by, next_bx, next_by, maxRangeReached, playerNum) {
 
 		//check that we are not beyond the allowed dimensions
 		if(Utils.outsideBoard(bx,by))
@@ -559,6 +571,11 @@ Bomberman.MultiplayerGame.prototype = {
 		var output = true;
 
 		if(cell.terrain == TerrainType.GRASS) {
+			if(playerNum == mpg.myPlayerNumber)
+			{
+				mpg.myPlayer.score++;
+			}
+			//mpg.Players[playerNum].score++;
 
 			//destroy the grass block
 			cell.grassBlock.destroy();
@@ -700,7 +717,8 @@ Bomberman.MultiplayerGame.prototype = {
 				velY: mpg.myPlayer.sprite.body.velocity.y,
 				orientation: mpg.myPlayer.orientation,
 				dropBomb: mpg.myPlayer.dropBomb,
-				alive: mpg.myPlayer.alive
+				alive: mpg.myPlayer.alive,
+				score: mpg.myPlayer.score
 			};
 			socket.emit("my coordinates and such", data);
 		}
@@ -710,9 +728,60 @@ Bomberman.MultiplayerGame.prototype = {
 		//console.log("from enqueueUpdateData: we are receiving following data from the server");
 		//console.log(data);
 
-		mpg.updateDataQueue.enqueue(data);
+		mpg.lastDataPackage = data;
+		//mpg.updateDataQueue.enqueue(data);
 		//console.log(mpg.updateDataQueue.getLength());
 
+	},
+
+	handleBombDroppedFromServer: function(data) {
+		// this is the expected format {bx: bx, by: by} 
+
+		this.dropBombAtBlock(data.bx, data.by);
+
+	},
+
+	dropBombAtBlock: function(bx, by) {
+
+		var wcoords = Utils.blockCoords2WorldCoords(bx, by, mpg.map);
+		var wx = wcoords.x;
+		var wy = wcoords.y;
+
+		if (mpg.map.board[bx][by].hasBomb)
+			return;
+		var audio = new Audio('Client/assets/music/BOM_SET.wav');
+		audio.play();
+		mpg.map.board[bx][by].hasBomb = true;
+		var bomb = new Bomb();
+
+		bomb.explosionFragments = [];
+		bomb.bx = bx;
+		bomb.by = by;
+		bomb.wx = wx;
+		bomb.wy = wy;
+
+		bomb.sprite = mpg.map.bombs.create(wx, wy, 'global_spritesheet');
+		bomb.sprite.frameName = 'bomb0.png';
+
+		Utils.updateFrameDimensions(bomb,this.game.cache);
+		bomb.sprite.anchor.x = 0.5;
+		bomb.sprite.anchor.y = 0.5;
+		bomb.sprite.scale.set(mpg.map.terrainBlockSize / bomb.frameWidth,
+									 mpg.map.terrainBlockSize / bomb.frameHeight);
+		bomb.sprite.animations.add('bomb',[
+			'bomb0.png',
+			'bomb1.png',
+			'bomb2.png',
+			'bomb3.png'
+			],2,false);
+		bomb.sprite.animations.play('bomb');
+
+		this.game.physics.arcade.enable(bomb.sprite);
+		bomb.sprite.body.immovable = true;
+
+		mpg.map.board[bx][by].bomb = bomb;
+
+		this.game.time.events.add(2000,this.explodeBomb,this,bomb);
 	}
 
 };

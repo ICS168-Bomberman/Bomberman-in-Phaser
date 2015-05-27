@@ -9,13 +9,13 @@ Bomberman.IntroMenu.prototype = {
 
 	create: function() {  	
 
-		var singlePlayerBtn  = this.game.add.button(this.game.world.centerX - 95, 200, 'global_spritesheet', this.launchSinglePlayerState, this,
+		var singlePlayerBtn  = this.game.add.button(15, 200, 'global_spritesheet', this.launchSinglePlayerState, this,
 				  'button_singleplayer.png',
 				  'button_singleplayer.png', 
 				  'button_singleplayer.png', 
 				  'button_singleplayer.png');
 
-		var multiPlayerBtn  = this.game.add.button(this.game.world.centerX - 95, 300, 'global_spritesheet', this.launchMultiPlayerState, this,
+		var multiPlayerBtn  = this.game.add.button(15, 300, 'global_spritesheet', this.launchMultiPlayerState, this,
 				  'button_multiplayer.png',
 				  'button_multiplayer.png',
 				  'button_multiplayer.png',

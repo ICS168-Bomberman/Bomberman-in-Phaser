@@ -36,7 +36,7 @@
     </div>
     <div class="row">
         <!-- LOCAL INFORMATION -->
-        <div class="col-sm-6">
+        <div class="col-sm-4">
             <div class="well">
                 <h3><span class="fa fa-user"></span> Local</h3>
 
@@ -52,10 +52,35 @@
 
             </div>
         </div>
+
+        <meta charset="UTF-8">
+        <title>Chatroom</title>
+        <link rel="stylesheet" href="style.css">
+
+        <div class="col-sm-6">
+
+            <div class="chatArea">
+                <ul class="messages"></ul>
+            </div>
+            <input class="inputMessage" placeholder="Type here..."/>
+            <li class="login page">
+                <div class="form">
+                    <h6 class="title">What's your nickname?</h6>
+                    <input class="usernameInput" type="text" maxlength="14" />
+                </div>
+            </li>
+        </div>
+
 	</div>
+
+</div>
+
     <div id="game_div"></div>
     <script src="Client/js/main.js"></script>
     <script src="Client/js/socket_logic.js"></script>
-</div>
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/main.js"></script>
+
 </body>
 </html>
