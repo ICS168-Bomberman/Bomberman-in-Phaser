@@ -338,8 +338,8 @@ function server(io, UUID) {
 		//==============================
 
 		//map.width = 3 + 2*n
-		var width = (Math.floor(Math.random() * 5) + 2) * 2 + 3
-		var height = (Math.floor(Math.random() * 5) + 2) * 2 + 3
+		var width = (Math.floor(Math.random() * 5) + 1) * 2 + 3
+		var height = (Math.floor(Math.random() * 5) + 1) * 2 + 3
 		game.createBoard(width,height);
 
 		map.width = width;

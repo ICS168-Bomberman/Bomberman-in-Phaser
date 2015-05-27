@@ -36,6 +36,8 @@ Bomberman.IntroMenu.prototype = {
 	},
 
 	launchSinglePlayerState: function() {
+		var audio = new Audio('Client/assets/music/select.wav');
+		audio.play();
 		socket.removeAllListeners();
 		this.game.state.start("SinglePlayerGame");
 	},
@@ -43,6 +45,8 @@ Bomberman.IntroMenu.prototype = {
 	launchMultiPlayerState: function() {
 		//we delay the switch to the MultiplayerMenu
 		//until we receive the answer with the gamelist from the server
+		var audio = new Audio('Client/assets/music/select.wav');
+		audio.play();
 		socket.emit("get gamelist");
 		console.log("---------------------------------");
 		console.log("SENDING 'get gamelist' to server");

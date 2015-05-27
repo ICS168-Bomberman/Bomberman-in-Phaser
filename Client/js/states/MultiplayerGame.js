@@ -13,7 +13,11 @@ var mpg = {
 	defaultVelocity: 130,
 	sendInterval: 10, //in milliseconds
 
-	num: 0
+	num: 0,
+	aliveNum: 0,
+	tempNum: 0,
+	gameOverState: false,
+	winner: 0
 };
 
 //information (mainly about sprites) for the 4 players in the game defined clockwise
@@ -77,6 +81,7 @@ Bomberman.MultiplayerGame.prototype = {
 	generateMap: function() {
 		var audio = new Audio('Client/assets/music/Bomberman Theme.mp3');
 		audio.play();
+
 		//create map as a bidimensional array
 		mpg.map.offsetX = 100;
 		mpg.map.offsetY = 50;
@@ -140,6 +145,8 @@ Bomberman.MultiplayerGame.prototype = {
 
 			if(player == null)
 				continue;
+
+			mpg.aliveNum++;
 			
 			///set initial velocity
 			player.vel = mpg.defaultVelocity;
@@ -312,6 +319,24 @@ Bomberman.MultiplayerGame.prototype = {
 			for(var i = 0; i < data.length; ++i) {
 				var playerData = data[i];
 
+				if (playerData.playerNum == mpg.myPlayerNumber && playerData.alive && mpg.aliveNum == 1 && !mpg.gameOverState)
+				{
+					var audio = new Audio('Client/assets/music/P1UP.wav');
+					audio.play();
+
+					this.game.add.sprite(0,28, 'you_win');
+					mpg.gameOverState = true;
+					winner = playerData.playerNum;
+				}
+				else if (!playerData.alive && mpg.gameOverState && mpg.tempNum == 0)
+				{
+					var audio = new Audio('Client/assets/music/PLAYER_OUT.wav');
+					audio.play();
+
+					this.game.add.sprite(0,28, 'you_lose');
+					mpg.tempNum = 1;					
+				}
+
 				if (playerData.playerNum == 0)
 					scoreTable1.text = "Player 1: "+ playerData.score;
 				if (playerData.playerNum == 1)
@@ -366,6 +391,7 @@ Bomberman.MultiplayerGame.prototype = {
 				else
 				{
 					mpg.players[playerData.playerNum].sprite.destroy();
+					mpg.aliveNum--;
 				}
 			}
 		}		
@@ -489,6 +515,9 @@ Bomberman.MultiplayerGame.prototype = {
 		else
 		{
 			mpg.myPlayer.sprite.destroy();
+
+			var audio = new Audio('Client/assets/music/PLAYER_OUT.wav');
+			audio.play();
 		}
 	},
 	explodeBomb: function(bomb, playerNum) {
@@ -580,6 +609,8 @@ Bomberman.MultiplayerGame.prototype = {
 			//destroy the grass block
 			cell.grassBlock.destroy();
 			cell.terrain = TerrainType.EMPTY;
+
+			/*
 			numberOfGrass--;
 			var randomValue = Math.floor(Math.random()*10);
 			if (randomValue == 0 && switchCount == 0 && numberOfGrass != 0)
@@ -644,7 +675,7 @@ Bomberman.MultiplayerGame.prototype = {
 				door.sprite.animations.play('move');
 			}
 			switchCount = 0;
-
+*/
 			output = false;
 
 		} else if(cell.terrain == TerrainType.EMPTY) {

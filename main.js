@@ -26,6 +26,8 @@ $(function() {
   var socket = io();
 
   function addParticipantsMessage (data) {
+    var audio = new Audio('Client/assets/music/join.wav');
+    audio.play();
     var message = '';
     if (data.numUsers === 1) {
       message += "there's 1 participant";
@@ -96,14 +98,17 @@ $(function() {
       .addClass(typingClass)
       .append($usernameDiv, $messageBodyDiv);
 
+    var audio = new Audio('Client/assets/music/message.wav');
+    audio.play();
+
     addMessageElement($messageDiv, options);
   }
 
   // Adds the visual chat typing message
   function addChatTyping (data) {
-    data.typing = true;
-    data.message = 'is typing';
-    addChatMessage(data);
+    //data.typing = true;
+    //data.message = 'is typing';
+    //addChatMessage(data);
   }
 
   // Removes the visual chat typing message
@@ -249,6 +254,8 @@ $(function() {
 
   // Whenever the server emits 'user left', log it in the chat body
   socket.on('user left', function (data) {
+    var audio = new Audio('Client/assets/music/leave.wav');
+    audio.play();
     log(data.username + ' left');
     addParticipantsMessage(data);
     removeChatTyping(data);

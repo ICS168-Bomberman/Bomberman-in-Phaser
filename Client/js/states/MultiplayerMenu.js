@@ -148,7 +148,9 @@ Bomberman.MultiplayerMenu.prototype = {
 	},
 
 	button_join_game_clicked: function() {
-
+		var audio = new Audio('Client/assets/music/select.wav');
+		audio.play();
+		
 		console.log("-----------------------------------------");
 		console.log("SENDING 'join existing game' message to server");
 		console.log("where game_id = " + this.game_id);
@@ -159,6 +161,9 @@ Bomberman.MultiplayerMenu.prototype = {
 	//the function context (this) is assumed to 
 	//point to the slot object that contains the button
 	button_host_game_clicked: function() {
+		var audio = new Audio('Client/assets/music/select.wav');
+		audio.play();
+
 		console.log("-----------------------------------------");
 		console.log("SENDING 'host new game' message to server");
 		console.log("where game_id = " + this.game_id);
