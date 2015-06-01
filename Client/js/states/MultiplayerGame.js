@@ -9,9 +9,8 @@ var mpg = {
 		initialBombRange: 1,
 		bombCounter: 0
 	},
-	updateDataQueue: new Queue(),
 	defaultVelocity: 130,
-	sendInterval: 10, //in milliseconds
+	sendInterval: 20, //in milliseconds
 
 	num: 0
 };
@@ -65,8 +64,9 @@ Bomberman.MultiplayerGame.prototype = {
 		this.generateMap();
 
 		//register callbacks fucntions in the socket
-		socket.on('receive game loop update data', this.enqueueUpdateData);		
+		socket.on('receive game loop update data', this.storeLastUpdatePackaged);		
 		socket.on('bomb dropped', this.handleBombDroppedFromServer.bind(this));
+		socket.on('player disconnected', this.handlePlayerDisconnection.bind(this));
 
 	},
 
@@ -81,11 +81,6 @@ Bomberman.MultiplayerGame.prototype = {
 		mpg.map.board = Utils.create_2D_array(mpg.map.width, mpg.map.height);	
 		mpg.nextSendTime = mpg.sendInterval;
 		mpg.initialTime = this.game.time.now;
-
-		//clear the coordinates queue
-		while(mpg.updateDataQueue.length > 0) {
-			mpg.updateDataQueue.dequeue();
-		}
 
 
 		///////////////////////////
@@ -260,63 +255,56 @@ Bomberman.MultiplayerGame.prototype = {
 		if(mpg.lastDataPackage) {
 			
 			var data = mpg.lastDataPackage;
-			mpg.lastDataPackage.null;
+			mpg.lastDataPackage = null;
 
 			//console.log("from the update loop: we are dequeueing the following data");
 			//console.log(data);
 
 			for(var i = 0; i < data.length; ++i) {
 				var playerData = data[i];
-				console.log(playerData);
+				//console.log(playerData);
 
 				if(playerData.playerNum == mpg.myPlayerNumber) continue; //skip updates for our own player
 				
-				if (playerData.alive)
+			var player = mpg.players[playerData.playerNum];
+
+				player.sprite.x = playerData.x;
+				player.sprite.y = playerData.y;
+				player.sprite.body.velocity.x = playerData.velX;
+				player.sprite.body.velocity.y = playerData.velY;
+				player.orientation = playerData.orientation;
+				player.alive = playerData.alive;
+
+				if (player.sprite.body.velocity.x != 0 || player.sprite.body.velocity.y != 0)
 				{
-					var player = mpg.players[playerData.playerNum];
-
-					player.sprite.x = playerData.x;
-					player.sprite.y = playerData.y;
-					player.sprite.body.velocity.x = playerData.velX;
-					player.sprite.body.velocity.y = playerData.velY;
-					player.orientation = playerData.orientation;
-					player.alive = playerData.alive;
-
-					if (player.sprite.body.velocity.x != 0 || player.sprite.body.velocity.y != 0)
+					switch(player.orientation)
 					{
-						switch(player.orientation)
-						{
-							case "left": 
-								player.sprite.animations.play('left');
-								player.standingFrame = player.standingLeft ;
-								break;
-							case "right":
-								player.sprite.animations.play('right');
-								player.standingFrame = player.standingRight ;
-								break;
-							case "up":
-								player.sprite.animations.play('up');
-								player.standingFrame = player.standingUp ;
-								break;
-							case "down": 
-								player.sprite.animations.play('down');
-								player.standingFrame = player.standingDown ;
-								break;
-						}
+						case "left": 
+							player.sprite.animations.play('left');
+							player.standingFrame = player.standingLeft ;
+							break;
+						case "right":
+							player.sprite.animations.play('right');
+							player.standingFrame = player.standingRight ;
+							break;
+						case "up":
+							player.sprite.animations.play('up');
+							player.standingFrame = player.standingUp ;
+							break;
+						case "down": 
+							player.sprite.animations.play('down');
+							player.standingFrame = player.standingDown ;
+							break;
 					}
-					else
-					{
-						player.sprite.animations.stop();
-						player.sprite.frameName = player.standingFrame;
-					}
-					
 				}
 				else
 				{
-					mpg.players[playerData.playerNum].sprite.destroy();
+					player.sprite.animations.stop();
+					player.sprite.frameName = player.standingFrame;
 				}
 			}
-		}		
+		}	
+
 
 		//check collisions for our player	
 		//against rocks
@@ -417,9 +405,10 @@ Bomberman.MultiplayerGame.prototype = {
 
 			}
 
-			//check if it's time to send our coordinates to the server		
-			if(this.game.time.now - mpg.initialTime >= mpg.nextSendTime) {
-				mpg.nextSendTime += mpg.sendInterval;
+			//check if it's time to send our coordinates to the server			
+			if(this.game.time.now - mpg.initialTime >= mpg.sendInterval) {
+				mpg.mpgInitialTime = this.game.time.now;
+
 				var data = {				
 						x: mpg.myPlayer.sprite.x,
 						y: mpg.myPlayer.sprite.y,
@@ -431,6 +420,18 @@ Bomberman.MultiplayerGame.prototype = {
 				socket.emit("my coordinates and such", data);
 				//console.log("we are sending information to the server");
 				//console.log(data);
+
+				for(var i = 0; i < mpg.players.length; ++i) {
+
+					var player = mpg.players[i];
+					if(player == null || playerNumber == i)
+						continue;
+
+					player.sprite.body.velocity.x = 0;
+					player.sprite.body.velocity.y = 0;
+
+				}
+
 			}
 		}
 		else
@@ -665,8 +666,8 @@ Bomberman.MultiplayerGame.prototype = {
 		}
 	},
 
-	enqueueUpdateData: function(data) {
-		//console.log("from enqueueUpdateData: we are receiving following data from the server");
+	storeLastUpdatePackaged: function(data) {
+		//console.log("from storeLastUpdatePackaged: we are receiving following data from the server");
 		//console.log(data);
 
 		mpg.lastDataPackage = data;
@@ -723,6 +724,17 @@ Bomberman.MultiplayerGame.prototype = {
 		mpg.map.board[bx][by].bomb = bomb;
 
 		this.game.time.events.add(2000,this.explodeBomb,this,bomb);
+	},
+
+	handlePlayerDisconnection: function(data) {
+
+		console.log("===> handlePlayerDisconnection()");
+
+		console.log(data);
+
+		mpg.players[data.playerNumber].sprite.destroy();
+		mpg.players[data.playerNumber] = null;
+
 	}
 
 };

@@ -386,7 +386,7 @@ function server(io, UUID) {
 			if(game.players[i] == null)
 				continue;
 			game.players[i].socket.emit('feel free to start the game', data);
-			game.players[i].state = "MultiplayerGame";
+			game.players[i].currentState = "MultiplayerGame";
 			game.players[i].hasReceivedData = false;
 		}
 
@@ -401,17 +401,39 @@ function server(io, UUID) {
 	};
 
 	function handle_disconnect() {
+
+		console.log("####################################");
+		console.log("####################################");
+		console.log("===> socket_server::handle_disconnect()");
+
 		var client = this;
+
+		console.log("client.currentState = " + client.currentState);
+
 
 		//remove client from the clients map
 		delete clients[client.user_id];
 
 		//check the state of the client and perform
 		//actions accordingly		
+
 		if(client.currentState == "lobby") {			
+
 			handle_leavingLobbyEvent.call(client, 
 				{game_id: client.game_id,
 				spotNumber: client.playerNumber} );
+
+		} else if (client.currentState == "MultiplayerGame") {
+
+			var client = this;
+			var game = gameHandles[client.game_id].game;
+			var players = game.players;
+			for(var i = 0; i < players.length; ++i) {
+				if(players[i] == null || players[i] == client)
+					continue;
+				players[i].socket.emit("player disconnected", {playerNumber: client.playerNumber});
+			}
+
 		}
 	};
 	

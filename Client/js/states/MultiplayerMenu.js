@@ -55,6 +55,8 @@ Bomberman.MultiplayerMenu.prototype = {
 			}
 		};
 
+		this.stage.disableVisibilityChange = true;
+
 		IamHost = false;
 
 		this.game_slots = {};
@@ -67,8 +69,6 @@ Bomberman.MultiplayerMenu.prototype = {
 
 		    if (!gamelist.hasOwnProperty(key))
 		        continue;
-
-		    console.log("\ti = " + i + "\tkey = " + key);
 
 			var game_slot = {};
 			game_slot.num_players = gamelist[key].num_players;
