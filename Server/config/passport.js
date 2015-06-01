@@ -26,7 +26,7 @@ module.exports = function(passport) {
 		console.log("--------------------------");
 		console.log("deserializeUser called");
 
-		db.get('SELECT id, username FROM userInfo WHERE id = ?', id, function(err, row) {
+		db.get('SELECT id, username, score FROM userInfo WHERE id = ?', id, function(err, row) {
 			done(err,row);
 			/*if (!row) return done(null, false);
 			return done(null, row);*/
@@ -143,10 +143,10 @@ module.exports = function(passport) {
 				     return done(null, false, req.flash('signupMessage', 'That username is already taken.'));
 				 } else {
 				 	// create the user
-				 	var stmt = db.prepare("INSERT INTO userInfo (username, password) VALUES(?,?)");
+				 	var stmt = db.prepare("INSERT INTO userInfo (username, password, score) VALUES(?,?,?)");
 				 	var hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);				 	
 				 	
-					stmt.run(username, hashedPassword);
+					stmt.run(username, hashedPassword,0);
 					stmt.finalize();
 					var newUser = {};
 
@@ -156,6 +156,7 @@ module.exports = function(passport) {
 						newUser.id = row.id;
 						newUser.username = row.username;
 						newUser.password = row.password;
+						newUser.score    = row.score;
 						console.log("printing new user");
 						console.log(newUser);
 						return done(null, newUser);

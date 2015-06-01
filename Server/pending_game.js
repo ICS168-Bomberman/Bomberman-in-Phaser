@@ -35,6 +35,16 @@ PendingGame.prototype = {
 		}
 	},
 
+	clearAllPlayers: function() {
+
+		this.numPlayers = 0;
+		for(var i = 0; i < 4; ++i) {
+			this.players[i] = null;
+			this.spots[i].available = true;
+		}
+
+	},
+
 	addPlayer: function(client) {
 		var spotNumber = this.claimFirstSpotAvailable();
 		this.players[spotNumber] = client;

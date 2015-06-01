@@ -38,7 +38,7 @@ var Utils = {
 						map.terrainBlockSize);
 
 		blockCoords.y = 
-		Math.floor((y - map.offsetY + height/2)/ 
+		Math.floor((y - map.offsetY + 5 + height/2)/ 
 						map.terrainBlockSize);
 		console.log(blockCoords);
 		return blockCoords;

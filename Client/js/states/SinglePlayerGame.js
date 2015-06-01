@@ -68,7 +68,7 @@ var switchCount = 0;
 var moveChooser = 0;
 
 var timer;
-var s = 40;
+var s = 25;
 var timesUp = false;
 var Score;
 var score = 0;
@@ -81,7 +81,7 @@ Bomberman.SinglePlayerGame.prototype = {
 console.log("CREATE");
   		//set up the keyboard
   		keyboard.cursors = this.game.input.keyboard.createCursorKeys();
-  		keyboard.spaceBar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+  		keyboard.alt = this.game.input.keyboard.addKey(Phaser.Keyboard.ALT);
 
   		//generate map
 		this.generateMap();
@@ -497,7 +497,7 @@ console.log("CREATE");
 			}
 
 			//trying to drop a bomb when spacebar is pressed
-			if(keyboard.spaceBar.isDown) {
+			if(keyboard.alt.isDown) {
 				this.tryDropBomb(player1);
 			} 
 		}

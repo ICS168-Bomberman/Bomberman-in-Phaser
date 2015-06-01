@@ -9,13 +9,13 @@ Bomberman.IntroMenu.prototype = {
 
 	create: function() {  	
 
-		var singlePlayerBtn  = this.game.add.button(this.game.world.centerX - 95, 200, 'global_spritesheet', this.launchSinglePlayerState, this,
+		var singlePlayerBtn  = this.game.add.button(15, 200, 'global_spritesheet', this.launchSinglePlayerState, this,
 				  'button_singleplayer.png',
 				  'button_singleplayer.png', 
 				  'button_singleplayer.png', 
 				  'button_singleplayer.png');
 
-		var multiPlayerBtn  = this.game.add.button(this.game.world.centerX - 95, 300, 'global_spritesheet', this.launchMultiPlayerState, this,
+		var multiPlayerBtn  = this.game.add.button(15, 300, 'global_spritesheet', this.launchMultiPlayerState, this,
 				  'button_multiplayer.png',
 				  'button_multiplayer.png',
 				  'button_multiplayer.png',
@@ -36,6 +36,8 @@ Bomberman.IntroMenu.prototype = {
 	},
 
 	launchSinglePlayerState: function() {
+		var audio = new Audio('Client/assets/music/select.wav');
+		audio.play();
 		socket.removeAllListeners();
 		this.game.state.start("SinglePlayerGame");
 	},
@@ -43,6 +45,8 @@ Bomberman.IntroMenu.prototype = {
 	launchMultiPlayerState: function() {
 		//we delay the switch to the MultiplayerMenu
 		//until we receive the answer with the gamelist from the server
+		var audio = new Audio('Client/assets/music/select.wav');
+		audio.play();
 		socket.emit("get gamelist");
 		console.log("---------------------------------");
 		console.log("SENDING 'get gamelist' to server");

@@ -318,6 +318,9 @@ function server(io, UUID) {
 		//set the state of the game to "running"
 		game_handle.state = "running";
 
+		//remove pending_game from pending_games
+		Utils.removeElementFromArray(game_handle.pending_game,pending_games);
+
 
 		//object to wrap the data to send to the clients
 		var data = {};
@@ -338,8 +341,8 @@ function server(io, UUID) {
 		//==============================
 
 		//map.width = 3 + 2*n
-		var width = (Math.floor(Math.random() * 5) + 2) * 2 + 3
-		var height = (Math.floor(Math.random() * 5) + 6) * 2 + 3
+		var width = (Math.floor(Math.random() * 5) + 1) * 2 + 3
+		var height = (Math.floor(Math.random() * 5) + 1) * 2 + 3
 		game.createBoard(width,height);
 
 		map.width = width;
@@ -414,6 +417,7 @@ function server(io, UUID) {
 		//remove client from the clients map
 		delete clients[client.user_id];
 
+
 		//check the state of the client and perform
 		//actions accordingly		
 
@@ -426,13 +430,25 @@ function server(io, UUID) {
 		} else if (client.currentState == "MultiplayerGame") {
 
 			var client = this;
-			var game = gameHandles[client.game_id].game;
-			var players = game.players;
+			var game_handle = gameHandles[client.game_id];
+			var game = game_handle.game;
+			var players = game.players;			
+			players[client.playerNumber] = null;
+			if(game.getNumPlayers() == 0) {
+				//finish the gameloop
+				GameLoop.clearGameLoop(game.gameloopID);
+				//clear pending_game and put it back into pending_games
+				game_handle.pending_game.clearAllPlayers();
+				pending_games.push(game_handle.pending_game);
+				game_handle.state = "empty";
+
+			}
+
 			for(var i = 0; i < players.length; ++i) {
-				if(players[i] == null || players[i] == client)
+				if(players[i] == null )
 					continue;
 				players[i].socket.emit("player disconnected", {playerNumber: client.playerNumber});
-			}
+			}			
 
 		}
 	};
@@ -451,6 +467,7 @@ function server(io, UUID) {
 		client.character.velY = data.velY;
 		client.character.orientation = data.orientation;
 		client.character.alive = data.alive;
+		client.character.score = data.score;
 		client.hasReceivedData = true;
 
 	}
@@ -482,7 +499,8 @@ function server(io, UUID) {
 					velX: client.character.velX,
 					velY: client.character.velY,
 					orientation: client.character.orientation,
-					alive: client.character.alive
+					alive: client.character.alive,
+					score: client.character.score
 				});
 		}
 

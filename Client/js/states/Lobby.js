@@ -161,6 +161,9 @@ Bomberman.Lobby.prototype = {
 	},
 
 	leaveGame: function() {
+		var audio = new Audio('Client/assets/music/select.wav');
+		audio.play();
+
 		socket.emit('leaving lobby', {game_id: gameID, spotNumber: playerNumber});
 	},
 
@@ -217,6 +220,8 @@ Bomberman.Lobby.prototype = {
 	},
 
 	startGameBtnClicked: function() {
+		var audio = new Audio('Client/assets/music/select.wav');
+		audio.play();
 		socket.emit('I want to start the game', {game_id: gameID});
 	},
 
@@ -228,7 +233,7 @@ Bomberman.Lobby.prototype = {
 		//mpg stands for multi player game, it is used as sort of namespace
 		//for variables we will be using in the MultiplayerGame state
 
-		mpg.doorCoordinates = data.doorCoordinates;
+		//mpg.doorCoordinates = data.doorCoordinates;
 		mpg.map.width = data.mapWidth;
 		mpg.map.height = data.mapHeight;
 
