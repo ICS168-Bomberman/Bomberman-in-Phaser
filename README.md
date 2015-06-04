@@ -7,6 +7,5 @@ Instructions to run:
 	5. then begin playing multiplayer game
 	6. join and host sessions
 	
-	What we were not able to finish:
-	1. were not able to update scores in database
-	2. did not have the player that has left the game completely dissapear from the scoreboard and the game
+	For EXTRA CREDIT:
+	- nothing was changed the only thing that was part of the extra credit that was done was the chat room
